@@ -2,7 +2,7 @@
   "name": "aristander-ai/aai",
   "description": "Aristander.ai support for Magento 2.x",
   "type": "magento2-module",
-  "version": "0.0.1",
+  "version": "0.0",
   "require": {
     "php": "^7.0.0",
     "magento/framework": ">=100.0.0",
