@@ -1,0 +1,19 @@
+<?php
+/** @var $this \AristanderAi\Aai\Block\PageView\Data */
+
+$event = $this->getPageRecord()->exportEvent();
+if (!$event) {
+    // Event record disabled
+    return;
+}
+?>
+<script type="text/x-magento-init">
+{
+    "*": {
+        "AristanderAi_Aai/js/track-page": {
+            "url": "<?= $this->getTrackUrl() ?>",
+            "details": "<?= base64_encode(serialize($event->getDetails())) ?>"
+        }
+    }
+}
+</script>

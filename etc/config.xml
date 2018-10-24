@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
+    <default>
+        <aai>
+            <general>
+                <enable>1</enable>
+            </general>
+            <event-page>
+                <enable>1</enable>
+            </event-page>
+            <event-basket>
+                <enable>1</enable>
+            </event-basket>
+            <event-login>
+                <enable>1</enable>
+            </event-login>
+            <event-order>
+                <enable>1</enable>
+            </event-order>
+        </aai>
+    </default>
+</config>

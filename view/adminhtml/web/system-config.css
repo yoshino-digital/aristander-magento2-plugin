@@ -1,0 +1,14 @@
+.aai-visualization--image--link,
+.admin__scope-old a.aai-visualization--image--link {
+    display: block;
+}
+.aai-visualization--toolbar {
+    margin-top: 1em;
+    text-align: center;
+}
+.aai-visualization--toolbar a,
+.admin__scope-old .aai-visualization--toolbar a {
+    display: inline-block;
+    padding-left: 8em;
+    padding-right: 8em;
+}
