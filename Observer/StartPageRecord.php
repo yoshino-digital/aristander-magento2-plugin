@@ -45,10 +45,7 @@ class StartPageRecord implements ObserverInterface
 
         $event = $this->pageRecorder->getEvent();
 
-        /** @var \Magento\Framework\App\Request\Http $request */
-        $request = $observer->getData('request');
-
-        $path = explode('/', trim($request->getPathInfo(), '/'));
+        $path = explode('/', trim($this->request->getPathInfo(), '/'));
         $details = $event->getDetails();
 
         if (1 == count($path) && '' == $path[0]) {
@@ -62,7 +59,7 @@ class StartPageRecord implements ObserverInterface
             // Product view page
             $details['page_name'] = 'product_page';
 
-            $details['product_id'] = $request->getParam('id');
+            $details['product_id'] = $this->request->getParam('id');
             assert($details['product_id'], 'Product ID is empty');
         }  elseif (2 == count($path)
             && 'checkout' == $path[0]
@@ -79,7 +76,7 @@ class StartPageRecord implements ObserverInterface
             $details['page_name'] = 'checkout';
         }
 
-        $details['page_url'] = $request->getUri()->toString();
+        $details['page_url'] = $this->request->getUri()->toString();
 
         $event->setDetails($details);
     }
