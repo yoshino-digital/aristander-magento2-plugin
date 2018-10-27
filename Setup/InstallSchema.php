@@ -134,17 +134,6 @@ class InstallSchema implements InstallSchemaInterface
                 ->setComment('Event Log and Sync Queue');
             $setup->getConnection()->createTable($table);
 
-            $idxFields = 'type';
-            $setup->getConnection()->addIndex(
-                $setup->getTable($tableName),
-                $setup->getIdxName(
-                    $setup->getTable($tableName),
-                    $idxFields,
-                    AdapterInterface::INDEX_TYPE_INDEX
-                ),
-                $idxFields,
-                AdapterInterface::INDEX_TYPE_INDEX
-            );
             $idxFields = 'status';
             $setup->getConnection()->addIndex(
                 $setup->getTable($tableName),

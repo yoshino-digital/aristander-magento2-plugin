@@ -3,7 +3,6 @@ namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Service\PageRecorder;
-use Magento\Catalog\Model\ProductFactory;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
@@ -19,19 +18,14 @@ class StartPageRecord implements ObserverInterface
     /** @var PageRecorder */
     protected $pageRecorder;
 
-    /** @var ProductFactory */
-    protected $productFactory;
-
     public function __construct(
         Data $helperData,
         PageRecorder $pageRecorder,
-        Http $request,
-        ProductFactory $productFactory
+        Http $request
     ) {
         $this->helperData = $helperData;
         $this->request = $request;
         $this->pageRecorder = $pageRecorder;
-        $this->productFactory = $productFactory;
     }
 
     public function execute(Observer $observer)

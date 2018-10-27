@@ -8,6 +8,13 @@ class Data extends AbstractHelper
 {
     protected $configPath = 'aai/';
 
+    /**
+     * Gets module config value
+     *
+     * @param string $code
+     * @param int|null $storeId
+     * @return string|null
+     */
     public function getConfigValue($code, $storeId = null)
     {
         return $this->scopeConfig->getValue(
