@@ -1,7 +1,7 @@
 <?php
 /** @var $this \AristanderAi\Aai\Block\PageView\Data */
 
-$event = $this->getPageRecord()->exportEvent();
+$event = $this->getPageRecorder()->exportEvent();
 if (!$event) {
     // Event record disabled
     return;

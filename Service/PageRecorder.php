@@ -112,6 +112,11 @@ class PageRecorder
      */
     public function recordProduct(SaleableInterface $product): self
     {
+        $details = $this->event->getDetails();
+        if (isset($details['products'][$product->getId()])) {
+            return $this;
+        }
+
         $productDetails = [
             'product_id' => $product->getId(),
         ];
@@ -146,7 +151,6 @@ class PageRecorder
             // Just do not set currency code
         }
 
-        $details = $this->event->getDetails();
         $details['products'][$product->getId()] = $productDetails;
         $this->event->setDetails($details);
 

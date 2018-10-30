@@ -3,7 +3,7 @@
     <body>
         <referenceContainer name="before.body.end">
             <block class="AristanderAi\Aai\Block\PageView\Data"
-                   name="aai.page-view.data"
+                   name="aristander_ai_aai.page-view.data"
                    after="-"
                    template="AristanderAi_Aai::page-view/data.phtml">
             </block>

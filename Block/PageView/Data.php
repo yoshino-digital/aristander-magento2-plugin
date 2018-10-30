@@ -9,14 +9,14 @@ use Magento\Framework\View\Element\Template\Context;
 class Data extends Template
 {
     /** @var PageRecorder */
-    protected $pageRecord;
+    protected $pageRecorder;
 
     public function __construct(
         Context $context,
-        PageRecorder $pageRecord,
+        PageRecorder $pageRecorder,
         array $data = []
     ) {
-        $this->pageRecord = $pageRecord;
+        $this->pageRecorder = $pageRecorder;
 
         parent::__construct($context, $data);
     }
@@ -24,9 +24,9 @@ class Data extends Template
     /**
      * @return PageRecorder
      */
-    public function getPageRecord(): PageRecorder
+    public function getPageRecorder(): PageRecorder
     {
-        return $this->pageRecord;
+        return $this->pageRecorder;
     }
 
     public function getTrackUrl()

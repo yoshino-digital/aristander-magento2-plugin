@@ -7,15 +7,15 @@ use AristanderAi\Aai\Service\PageRecorder;
 class PriceBoxPlugin
 {
     /** @var PageRecorder */
-    protected $pageRecord;
+    protected $pageRecorder;
 
-    public function __construct(PageRecorder $pageView)
+    public function __construct(PageRecorder $pageRecorder)
     {
-        $this->pageRecord = $pageView;
+        $this->pageRecorder = $pageRecorder;
     }
 
     public function beforeRenderAmount(PriceBox $subject)
     {
-        $this->pageRecord->recordProduct($subject->getSaleableItem());
+        $this->pageRecorder->recordProduct($subject->getSaleableItem());
     }
 }
