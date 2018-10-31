@@ -39,7 +39,7 @@ class Page extends Action
 
         $event = $this->eventFactory->create(['type' => 'page']);
         if (!$event->isEnabled()) {
-            $result->setData('status', 'disabled');
+            $result->setData(['status' => 'disabled']);
             return $result;
         }
 
