@@ -86,7 +86,7 @@ class OrderRecorder
             if ($order->hasData($attribute)) {
                 // First try to get data from order as shipping cost is not updated in quote totals
                 $value = $order->getData($attribute);
-            } else if ($total->hasData('value')) {
+            } elseif ($total->hasData('value')) {
                 $value = $total->getData('value');
             } else {
                 continue;
