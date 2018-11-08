@@ -8,7 +8,7 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class Visualization extends Field
 {
-    /** @var string @Template path */
+    /** @var string Template path */
     protected $_template = 'system/config/visualization.phtml';
 
     /** @var string Image URL template. Use {apiKey} placeholder to specify the API key position */
@@ -17,6 +17,7 @@ class Visualization extends Field
     /** @var string Link URL template. Use {apiKey} placeholder to specify the API key position */
     protected $linkUrlTemplate = 'https://aristander.ai/app';
 
+    /** @var Data */
     protected $helperData;
 
     public function __construct(

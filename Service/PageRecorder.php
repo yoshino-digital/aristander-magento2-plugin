@@ -81,7 +81,7 @@ class PageRecorder
 
         // Push main product to the beginning
         $products = $details['products'];
-        if (isset($details['product_id'])) {
+        if (isset($details['product_id']) && count($products) > 1) {
             $productId = $details['product_id'];
             assert(isset($products[$productId]), 'Main product not recorded');
             if (isset($products[$productId])) {

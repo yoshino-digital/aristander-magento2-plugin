@@ -19,6 +19,14 @@ class SendEvents
 
     protected $maxCount = 1000;
 
+    protected $attributeRename = [
+        'type' => 'event_type',
+        'details' => 'event_details',
+    ];
+
+    /** @var \Zend\Http\Client */
+    protected $httpClient;
+
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
     protected $logger;
@@ -41,9 +49,6 @@ class SendEvents
     /** @var Data */
     protected $helperData;
 
-    /** @var \Zend\Http\Client */
-    protected $httpClient;
-
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */
         LoggerInterface $logger,
@@ -62,11 +67,6 @@ class SendEvents
         $this->date = $date;
         $this->helperData = $helperData;
     }
-
-    protected $attributeRename = [
-        'type' => 'event_type',
-        'details' => 'event_details',
-    ];
 
     /**
      * @throws ApiHttpClient\Exception

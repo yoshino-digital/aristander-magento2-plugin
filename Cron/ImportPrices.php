@@ -129,7 +129,7 @@ class ImportPrices
                     $columnIndexes = [];
 
                     if (count($columns) < count($this->columnNames)) {
-                        // Too less columns
+                        // Too little columns
                         throw new Exception("Error at CSV line {$lineNo}: Invalid file format - expect at least "
                             . count($this->columnNames) . " columns, found " . count($row));
                     }
