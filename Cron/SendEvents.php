@@ -9,20 +9,16 @@ use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
 use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
+use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use /** @noinspection PhpUndefinedClassInspection */
     \Psr\Log\LoggerInterface;
 
 class SendEvents
 {
-    protected $endPointUrl = 'https://api.aristander.ai/event';
+    protected $endPointUrl = 'https://api.aristander.ai/events';
 
-    protected $maxCount = 1000;
-
-    protected $attributeRename = [
-        'type' => 'event_type',
-        'details' => 'event_details',
-    ];
+    protected $maxCount = 100;
 
     /** @var \Zend\Http\Client */
     protected $httpClient;
@@ -49,6 +45,9 @@ class SendEvents
     /** @var Data */
     protected $helperData;
 
+    /** @var ResourceConnection */
+    protected $resource;
+
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */
         LoggerInterface $logger,
@@ -57,7 +56,8 @@ class SendEvents
         EventResource $eventResource,
         ApiHttpClient $helperApiHttpClient,
         DateTime $date,
-        Data $helperData
+        Data $helperData,
+        ResourceConnection $resource
     ) {
         $this->logger = $logger;
         $this->eventCollectionFactory = $eventCollectionFactory;
@@ -66,12 +66,14 @@ class SendEvents
         $this->helperApiHttpClient = $helperApiHttpClient;
         $this->date = $date;
         $this->helperData = $helperData;
+        $this->resource = $resource;
     }
 
     /**
      * @throws ApiHttpClient\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws Exception
      */
     public function execute()
     {
@@ -84,65 +86,100 @@ class SendEvents
 
         $this->logger->debug('Starting Aristander.ai event sending');
 
-        $counter = [
-            'success' => 0,
-            'error' => 0,
-        ];
-
-        /** @var \AristanderAi\Aai\Model\ResourceModel\Event\Collection $events */
-        $events = $this->eventCollectionFactory->create()
+        /** @var \AristanderAi\Aai\Model\ResourceModel\Event\Collection $eventCollection */
+        $eventCollection = $this->eventCollectionFactory->create()
             ->setStatusFilter(['pending', 'error']);
         if (!empty($this->maxCount)) {
-            $events->setPageSize($this->maxCount);
+            $eventCollection->setPageSize($this->maxCount);
         }
 
-        $this->logger->debug("Found {$events->getSize()} pending events");
+        if (0 == $eventCollection->getSize()) {
+            $this->logger->debug("No pending events found, quitting cron job");
+            return;
+        }
 
-        /** @var Event $event */
-        foreach ($events as $event) {
-            try {
-                $this->sendEvent($event);
-                $event->setStatus('success');
-                $event->setLastError(null);
-                $counter['success']++;
-            } catch (Exception $e) {
-                $event->setStatus('error');
-                $event->setLastError($e->getMessage());
-                $counter['error']++;
+        $this->logger->debug("Found {$eventCollection->getSize()} pending events");
+
+        for ($pageNo = 1; $pageNo <= $eventCollection->getLastPageNumber(); $pageNo++) {
+            $this->logger->debug("Processing page #{$pageNo} of {$eventCollection->getLastPageNumber()}");
+
+            // Force fetching top pending events
+            $eventCollection->clear();
+            // The loop doesn't call setCurPage() because changing status to
+            // "success" moves events out of collection
+
+            $events = [];
+            /** @var Event $event */
+            foreach ($eventCollection as $event) {
+                $events[] = $event->export();
             }
 
-            $event->setSyncedAt($this->date->gmtDate());
+            if (!$events) {
+                $this->logger->debug("Fetched no pending events, stopping page loop");
+                break;
+            }
 
+            $this->logger->debug("Fetched events: " . count($events));
+            $this->logger->debug("Sending event page #{$pageNo} of {$eventCollection->getLastPageNumber()}");
+
+            $syncDate = $this->date->gmtDate();
+
+            $exception = null;
             try {
-                $this->eventRepository->save($event);
-            } catch (\Exception $e) {
-                $this->logger->error("Error saving event #{$event->getId()}: {$e->getMessage()}");
+                $this->sendEvents($events);
+                $this->logger->debug("Event page sent OK");
+            } catch (Exception $exception) {
+                // Just assign $exception variable
+                $this->logger->error("Event page sending error: {$exception->getMessage()}");
+            }
+
+            $this->logger->debug("Updating processed event statuses");
+
+            $connection = $this->resource->getConnection();
+            $connection->beginTransaction();
+
+            /** @var Event $event */
+            foreach ($eventCollection as $event) {
+                if (is_null($exception)) {
+                    $event->setStatus('success');
+                    $event->setLastError(null);
+                    $event->setSyncedAt($syncDate);
+                } else {
+                    $event->setStatus('error');
+                    $event->setLastError($exception->getMessage());
+                }
+
+                try {
+                    $this->eventRepository->save($event);
+                } catch (\Exception $e) {
+                    $this->logger->error("Error saving event #{$event->getId()}: {$e->getMessage()}");
+                    $connection->rollBack();
+                    throw new Exception($e->getMessage());
+                }
+            }
+
+            $connection->commit();
+
+            $this->logger->debug("Event statuses updated OK");
+
+            if (!is_null($exception)) {
+                break;
             }
         }
 
         $this->logger->debug('Cleaning old synced events');
         $this->eventResource->cleanUp();
 
-        $this->logger->debug("Finished Aristander.ai event sending. Success: {$counter['success']}, error: {$counter['error']}");
+        $this->logger->debug("Finished Aristander.ai event sending");
     }
 
     /**
-     * @param Event $event
+     * @param array $events
      * @throws Exception
      */
-    protected function sendEvent(Event $event)
+    protected function sendEvents(array $events)
     {
-        $data = $event->toArray(Event::getExportAttributes());
-        $request = [];
-        foreach ($data as $key => $value) {
-            if (isset($this->attributeRename[$key])) {
-                $key = $this->attributeRename[$key];
-            }
-
-            $request[$key] = $value;
-        }
-
-        $this->httpClient->setRawBody(json_encode($request));
+        $this->httpClient->setRawBody(json_encode(compact('events')));
 
         try {
             $this->httpClient->send();

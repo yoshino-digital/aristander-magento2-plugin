@@ -142,7 +142,7 @@ class Event extends AbstractModel implements EventInterface
      *
      * @return array
      */
-    public static function getExportAttributes()
+    public function getExportAttributes()
     {
         return [
             'type',
@@ -156,6 +156,40 @@ class Event extends AbstractModel implements EventInterface
             'details',
         ];
     }
+
+    /**
+     * Specifies attributes to rename when exporting to API
+     *
+     * @return array
+     */
+    public function getExportAttributeRenames()
+    {
+        return [
+            'type' => 'event_type',
+            'details' => 'event_details',
+        ];
+    }
+
+    /**
+     * Exports data for API
+     *
+     * @return array
+     */
+    public function export()
+    {
+        $exportAttributes = $this->getExportAttributes();
+
+        $result = $this->toArray($exportAttributes);
+        foreach ($this->getExportAttributeRenames() as $from => $to) {
+            if (array_key_exists($from, $result)) {
+                $result[$to] = $result[$from];
+                unset($result[$from]);
+            }
+        }
+
+        return $result;
+    }
+
 
     //
     // Getters and setters

@@ -15,6 +15,12 @@ class ImportPrices
 {
     protected $endPointUrl = 'https://api.aristander.ai/prices';
 
+    /** @var array Expected column names */
+    protected $columnNames = [
+        'product_id',
+        'price',
+    ];
+
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
     protected $logger;
@@ -33,12 +39,6 @@ class ImportPrices
 
     /** @var Data */
     protected $helperData;
-
-    /** @var array Expected column names */
-    protected $columnNames = [
-        'product_id',
-        'price',
-    ];
 
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */
