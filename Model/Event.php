@@ -88,7 +88,7 @@ class Event extends AbstractModel implements EventInterface
      *
      * @return $this
      */
-    public function collectGeneralProperties()
+    public function collect()
     {
         // Session data
         $key = 'session_id';

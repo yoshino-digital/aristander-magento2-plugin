@@ -37,7 +37,7 @@ class OrderRecorder
     public function record(Order $order): self
     {
         $event = $this->eventFactory->create(['type' => 'order']);
-        $event->collectGeneralProperties();
+        $event->collect();
 
         $details = [
             'order_id' => $order->getIncrementId(),

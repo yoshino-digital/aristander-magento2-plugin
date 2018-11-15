@@ -71,7 +71,7 @@ class Page extends Action
             return $result;
         }
 
-        $event->collectGeneralProperties()
+        $event->collect()
             ->setDetails($details);
 
         try {

@@ -30,7 +30,7 @@ class LoginRecorder
     public function record(): self
     {
         $event = $this->eventFactory->create(['type' => 'login']);
-        $event->collectGeneralProperties();
+        $event->collect();
 
         $event->setDetails([
             'user_id' => $event->getUserId(),

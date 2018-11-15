@@ -56,7 +56,7 @@ class CartRecorder
 
             /** @var \AristanderAi\Aai\Model\Event $event */
             $event = $this->eventFactory->create(['type' => 'basket']);
-            $event->collectGeneralProperties();
+            $event->collect();
             $event->setDetails([
                 'action' => $action,
                 'product_id' => $item->getProduct()->getId(),
