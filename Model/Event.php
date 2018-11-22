@@ -3,6 +3,7 @@ namespace AristanderAi\Aai\Model;
 
 use AristanderAi\Aai\Api\Data\EventInterface;
 use AristanderAi\Aai\Helper\Data;
+use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -31,6 +32,9 @@ class Event extends AbstractModel implements EventInterface
     /** @var Data */
     protected $helperData;
 
+    /** @var ProductResource */
+    protected $productResource;
+
     /**
      * Event constructor.
      *
@@ -41,6 +45,7 @@ class Event extends AbstractModel implements EventInterface
      * @param Data $helperData
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
+     * @param ProductResource $productResource
      * @param array $data
      */
     public function __construct(
@@ -49,6 +54,7 @@ class Event extends AbstractModel implements EventInterface
         Session $session,
         StoreManagerInterface $storeManager,
         Data $helperData,
+        ProductResource $productResource,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -56,6 +62,7 @@ class Event extends AbstractModel implements EventInterface
         $this->session = $session;
         $this->storeManager = $storeManager;
         $this->helperData = $helperData;
+        $this->productResource = $productResource;
 
         parent::__construct(
             $context,
@@ -177,9 +184,31 @@ class Event extends AbstractModel implements EventInterface
      */
     public function export()
     {
-        $exportAttributes = $this->getExportAttributes();
+        // Export
+        $result = $this->toArray($this->getExportAttributes());
 
-        $result = $this->toArray($exportAttributes);
+        // Add version stamp
+        //TODO: implementation
+
+        // Convert product IDs to SKUs in details
+        $details = &$result['details'];
+        switch ($this->getType()) {
+            case 'page':
+            case 'order':
+                foreach ($details['products'] as &$product) {
+                    $product['product_id'] = $this->productIdToSku($product['product_id']);
+                }
+                unset($product);
+
+                break;
+
+            case 'basket':
+                $details['product_id'] = $this->productIdToSku($details['product_id']);
+
+                break;
+        }
+
+        // Rename
         foreach ($this->getExportAttributeRenames() as $from => $to) {
             if (array_key_exists($from, $result)) {
                 $result[$to] = $result[$from];
@@ -190,6 +219,21 @@ class Event extends AbstractModel implements EventInterface
         return $result;
     }
 
+    //
+    // Helper methods
+    //
+
+    /**
+     * @param int $productId
+     * @return string|null
+     */
+    protected function productIdToSku($productId)
+    {
+        $result = $this->productResource->getAttributeRawValue($productId,
+            'sku', $this->getStoreId());
+
+        return $result['sku'] ?? null;
+    }
 
     //
     // Getters and setters
