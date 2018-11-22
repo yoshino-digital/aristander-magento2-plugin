@@ -61,6 +61,13 @@ class ImportPrices
      */
     public function execute()
     {
+        $this->logger->debug('Starting Aristander.ai price import task');
+
+        if (!$this->helperData->isPriceImportEnabled()) {
+            $this->logger->debug('Aristander.ai price import is disabled');
+            return;
+        }
+
         try {
             $this->initHttpClient();
         } catch (NotConfiguredException $e) {
@@ -68,29 +75,18 @@ class ImportPrices
             return;
         }
 
-        $this->logger->debug('Starting Aristander.ai price import');
-
         $this->httpClient->setRawBody(json_encode([
             'type' => 'aggregate',
             'format' => 'csv',
         ]));
-        $this->httpClient->send();
+
         /** @var \Zend\Http\Response\Stream $response */
-        $response = $this->httpClient->getResponse();
+        $response = $this->httpClient->send();
         if (!$response->isOk()) {
             throw new Exception("API error {$response->getStatusCode()}: {$response->getBody()}");
         }
 
         $this->process($response->getStream());
-
-
-        // Test code for local file
-        /*
-        $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-        $directory = $objectManager->get('\Magento\Framework\Filesystem\DirectoryList');
-        $rootPath = $directory->getRoot();
-        $this->process(fopen($rootPath . '/development/price-extra-column.csv', 'r'));
-        */
 
         $this->logger->debug("Finished Aristander.ai price import.");
     }

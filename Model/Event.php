@@ -87,7 +87,7 @@ class Event extends AbstractModel implements EventInterface
     {
         return $this->hasType()
             ? $this->helperData->isEventTypeEnabled($this->getType())
-            : $this->helperData->isEnabled();
+            : $this->helperData->isEventTrackingEnabled();
     }
 
     /**

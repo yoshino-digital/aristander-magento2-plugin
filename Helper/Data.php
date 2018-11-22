@@ -39,34 +39,58 @@ class Data extends AbstractHelper
     }
 
     /**
-     * Indicates if the module is enabled
+     * Indicates if event tracking subsystem is enabled
      *
      * @return bool
      */
-    public function isEnabled(): bool
+    public function isEventTrackingEnabled()
     {
-        return (bool) $this->getConfigValue('general/enable');
+        return $this->isModuleEnabled()
+            && $this->getConfigValue('event_tracking/enabled');
     }
 
     /**
-     * Indicates if event tracking is enabled for specific event type
+     * Indicates if collection of specific event type is enabled
+     * using reserved settings
      *
-     * @param string|null $type event type or null for all event types
+     * @param string|null $type
      * @return bool
      */
-    public function isEventTypeEnabled($type): bool
+    public function isEventTypeEnabled($type)
     {
-        if (!$this->isEnabled()) {
+        if (!$this->isEventTrackingEnabled()) {
             return false;
         }
 
         if (!empty($type)
-            && !$this->getConfigValue("event-{$type}/enable")
+            && !$this->getConfigValue("event_tracking/{$type}_enabled")
         ) {
             // Specific event type disabled
             return false;
         }
 
+        return true;
+    }
+
+    /**
+     * Indicates if price import is enabled
+     *
+     * @return bool
+     */
+    public function isPriceImportEnabled()
+    {
+        return $this->isModuleEnabled()
+            && $this->getConfigValue('price_import/enabled');
+    }
+
+    /**
+     * Stub added for compatibility with Magento 1.x code
+     * Could be implemented later
+     *
+     * @return true
+     */
+    public function isModuleEnabled()
+    {
         return true;
     }
 

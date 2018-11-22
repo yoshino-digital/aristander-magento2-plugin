@@ -2,21 +2,17 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Store:etc/config.xsd">
     <default>
         <aai>
-            <general>
-                <enable>1</enable>
-            </general>
-            <event-page>
-                <enable>1</enable>
-            </event-page>
-            <event-basket>
-                <enable>1</enable>
-            </event-basket>
-            <event-login>
-                <enable>1</enable>
-            </event-login>
-            <event-order>
-                <enable>1</enable>
-            </event-order>
+            <event_tracking>
+                <enabled>1</enabled>
+                <page_enabled>1</page_enabled>
+                <basket_enabled>1</basket_enabled>
+                <login_enabled>1</login_enabled>
+                <order_enabled>1</order_enabled>
+                <user_creation_enabled>1</user_creation_enabled>
+            </event_tracking>
+            <price_import>
+                <enabled>1</enabled>
+            </price_import>
         </aai>
     </default>
 </config>

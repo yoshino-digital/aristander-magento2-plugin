@@ -16,6 +16,10 @@ class PriceBoxPlugin
 
     public function beforeRenderAmount(PriceBox $subject)
     {
+        if (!$this->pageRecorder->isStarted()) {
+            return;
+        }
+
         $this->pageRecorder->recordProduct($subject->getSaleableItem());
     }
 }
