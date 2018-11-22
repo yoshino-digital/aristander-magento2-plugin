@@ -111,6 +111,20 @@ class InstallSchema implements InstallSchemaInterface
                     'Event Details'
                 )
                 ->addColumn(
+                    'version',
+                    Table::TYPE_TEXT,
+                    255,
+                    array('nullable' => false),
+                    'Version of the module at the time of event registration'
+                )
+                ->addColumn(
+                    'timestamp',
+                    Table::TYPE_INTEGER,
+                    null,
+                    array('nullable' => false),
+                    'vent registration UNIX timestamp'
+                )
+                ->addColumn(
                     'created_at',
                     Table::TYPE_TIMESTAMP,
                     null,

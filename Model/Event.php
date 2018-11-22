@@ -97,6 +97,16 @@ class Event extends AbstractModel implements EventInterface
      */
     public function collect()
     {
+        // Event metadata
+        $key = 'timestamp';
+        if (!$this->hasData($key)) {
+            $this->setTimestamp();
+        }
+        $key = 'version';
+        if (!$this->hasData($key)) {
+            $this->setData($key, $this->helperData->getVersion());
+        }
+
         // Session data
         $key = 'session_id';
         if (!$this->hasData($key)) {
@@ -161,6 +171,8 @@ class Event extends AbstractModel implements EventInterface
             'store_group_id',
             'website_id',
             'details',
+            'timestamp',
+            'version',
         ];
     }
 
@@ -398,6 +410,44 @@ class Event extends AbstractModel implements EventInterface
     public function setDetails($value)
     {
         return $this->setData(self::DETAILS, $value);
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion()
+    {
+        return $this->_getData(self::VERSION);
+    }
+
+    /**
+     * @param string $value
+     * @return self
+     */
+    public function setVersion($value)
+    {
+        return $this->setData(self::VERSION, $value);
+    }
+
+    /**
+     * @return int
+     */
+    public function getTimestamp()
+    {
+        return $this->_getData(self::TIMESTAMP);
+    }
+
+    /**
+     * @param int|null $value
+     * @return self
+     */
+    public function setTimestamp($value = null)
+    {
+        if (is_null($value)) {
+            $value = time();
+        }
+
+        return $this->setData(self::TIMESTAMP, $value);
     }
 
     /**

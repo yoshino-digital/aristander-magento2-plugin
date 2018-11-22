@@ -2,11 +2,26 @@
 namespace AristanderAi\Aai\Helper;
 
 use Magento\Framework\App\Helper\AbstractHelper;
+use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Module\ModuleListInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
-    protected $configPath = 'aai/';
+    protected $configPath = 'aai';
+
+    /** @var string Platform name for generating full version string */
+    protected $platformName = 'magento-2';
+
+    protected $moduleList;
+
+    public function __construct(
+        Context $context,
+        ModuleListInterface $moduleList
+    ) {
+        $this->moduleList = $moduleList;
+        parent::__construct($context);
+    }
 
     /**
      * Gets module config value
@@ -18,7 +33,7 @@ class Data extends AbstractHelper
     public function getConfigValue($code, $storeId = null)
     {
         return $this->scopeConfig->getValue(
-            $this->configPath . $code,
+            $this->configPath . '/' . $code,
             ScopeInterface::SCOPE_STORE, $storeId
         );
     }
@@ -53,5 +68,41 @@ class Data extends AbstractHelper
         }
 
         return true;
+    }
+
+    /**
+     * Gets current module version
+     *
+     * @return string
+     */
+    public function getVersion()
+    {
+        return $this->moduleList
+            ->getOne($this->_getModuleName())['setup_version'];
+    }
+
+    /**
+     * Gets full version string for supplying to events API
+     *
+     * @param string|null $moduleVersion
+     * @return string
+     */
+    public function getVersionStamp($moduleVersion = null)
+    {
+        if ('' == $moduleVersion) {
+            $moduleVersion = $this->getVersion();
+        }
+
+        return "{$this->platformName}-{$moduleVersion}";
+    }
+
+    /**
+     * Gets module config path
+     *
+     * @return string
+     */
+    public function getConfigPath()
+    {
+        return $this->configPath;
     }
 }

@@ -12,6 +12,8 @@ interface EventInterface
     const STORE_GROUP_ID = 'store_group_id';
     const WEBSITE_ID = 'website_id';
     const DETAILS = 'details';
+    const VERSION = 'version';
+    const TIMESTAMP = 'timestamp';
     const CREATED_AT = 'created_at';
     const SYNCED_AT = 'synced_at';
     const LAST_ERROR = 'last_error';
@@ -119,6 +121,28 @@ interface EventInterface
      * @return self
      */
     public function setDetails($value);
+
+    /**
+     * @return string
+     */
+    public function getVersion();
+
+    /**
+     * @param string $value
+     * @return self
+     */
+    public function setVersion($value);
+
+    /**
+     * @return int
+     */
+    public function getTimestamp();
+
+    /**
+     * @param int|null $value
+     * @return self
+     */
+    public function setTimestamp($value = null);
 
     /**
      * @return string|null;
