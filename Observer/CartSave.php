@@ -7,7 +7,7 @@ use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote\Item;
 
-class CartSaveBefore implements ObserverInterface
+class CartSave implements ObserverInterface
 {
     /** @var Data */
     protected $helperData;
@@ -25,6 +25,8 @@ class CartSaveBefore implements ObserverInterface
 
     /**
      * @param Observer $observer
+     * @throws \Exception
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
     public function execute(Observer $observer)
     {
@@ -32,6 +34,22 @@ class CartSaveBefore implements ObserverInterface
             return;
         }
 
+        switch ($observer->getEvent()->getName()) {
+            case 'checkout_cart_save_before':
+                $this->beforeSave($observer);
+                break;
+
+            case 'checkout_cart_save_after':
+                $this->afterSave();
+                break;
+        }
+    }
+
+    /**
+     * @param Observer $observer
+     */
+    public function beforeSave(Observer $observer)
+    {
         /** @var \Magento\Checkout\Model\Cart  $cart */
         $cart = $observer->getData('cart');
 
@@ -58,5 +76,14 @@ class CartSaveBefore implements ObserverInterface
                 );
             }
         }
+    }
+
+    /**
+     * @throws \Exception
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     */
+    public function afterSave()
+    {
+        $this->cartRecorder->saveEvents();
     }
 }
