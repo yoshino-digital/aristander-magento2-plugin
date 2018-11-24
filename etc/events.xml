@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
+    <event name="customer_save_before">
+        <observer name="aristander_ai_aai_customer_save_before" instance="AristanderAi\Aai\Observer\CustomerCreate" />
+    </event>
+    <event name="customer_save_after">
+        <observer name="aristander_ai_aai_customer_save_after" instance="AristanderAi\Aai\Observer\CustomerCreate" />
+    </event>
+</config>

@@ -3,14 +3,6 @@
     <event name="controller_action_predispatch">
         <observer name="aristander_ai_aai_start_page_record" instance="AristanderAi\Aai\Observer\StartPageRecord" />
     </event>
-    <!--
-    <event name="catalog_product_load_after">
-        <observer name="aai_record_product" instance="AristanderAi\Aai\Observer\RecordProduct" />
-    </event>
-    <event name="catalog_product_collection_load_after">
-        <observer name="aai_record_product" instance="AristanderAi\Aai\Observer\RecordProductCollection" />
-    </event>
-    -->
     <event name="checkout_cart_save_before">
         <observer name="aristander_ai_aai_cart_save_before" instance="AristanderAi\Aai\Observer\CartSave" />
     </event>

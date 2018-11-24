@@ -48,7 +48,7 @@ class EventFactory
         $type = null;
         if (isset($data['type'])) {
             $type = $data['type'];
-            $instanceName .= '\\' . ucfirst($data['type']);
+            $instanceName .= '\\' . $this->typeToClass($type);
 
             unset($data['type']);
         }
@@ -63,5 +63,20 @@ class EventFactory
     protected function _create($instanceName, array $data = [])
     {
         return $this->objectManager->create($instanceName, $data);
+    }
+
+    /**
+     * Ported uc_words function from Magento 1.x functions
+     * Tiny function to enhance functionality of ucwords
+     *
+     * Will capitalize first letters and convert separators if needed
+     *
+     * @param string $type
+     * @return string
+     */
+    protected function typeToClass($type)
+    {
+        return str_replace(' ', '',
+            ucwords(str_replace('_', ' ', $type)));
     }
 }
