@@ -38,7 +38,6 @@ class Event extends AbstractDb
     public function cleanUp(): self
     {
         $this->getConnection()->delete($this->getMainTable(), [
-            'status = ?' => 'success',
             'synced_at < ?' => $this->date->gmtDate(null,
                 strtotime('-1 day')),
         ]);
