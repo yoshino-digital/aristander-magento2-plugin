@@ -8,6 +8,7 @@ use AristanderAi\Aai\Helper\Data;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\NoSuchEntityException;
 use /** @noinspection PhpUndefinedClassInspection */
     \Psr\Log\LoggerInterface;
 
@@ -154,11 +155,10 @@ class ImportPrices
                 }
 
                 /** @var Product $product */
-                $product = $this->productRepository->getById($data['product_id']);
-
-                if (!$product || !$product->getId()) {
-                    // ID not found
-                    $this->logger->warning("Error at CSV line {$lineNo}: Product ID '{$data['product_id']}' not found");
+                try {
+                    $product = $this->productRepository->get($data['product_id']);
+                } catch (NoSuchEntityException $e) {
+                    $this->logger->warning("Error at CSV line {$lineNo}: Product SKU '{$data['product_id']}' not found");
                     continue;
                 }
 

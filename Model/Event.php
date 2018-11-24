@@ -200,7 +200,11 @@ class Event extends AbstractModel implements EventInterface
         $result = $this->toArray($this->getExportAttributes());
 
         // Add version stamp
-        //TODO: implementation
+        if (isset($result['version']) && '' != $result['version']) {
+            $result['plugin_version'] = $this->helperData->getVersionStamp(
+                $result['version']);
+            unset($result['version']);
+        }
 
         // Convert product IDs to SKUs in details
         $details = &$result['details'];
