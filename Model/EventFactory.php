@@ -53,7 +53,6 @@ class EventFactory
             unset($data['type']);
         }
 
-
         $result = $this->_create($instanceName, $data);
         $result->setType($type);
 

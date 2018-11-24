@@ -1,11 +1,17 @@
 define ([
     'jquery'
 ], function ($) {
-    return function (data) {
-        $.ajax(data.url, {
+    return function (info) {
+        var products = [];
+        $('script[type="text/x-aristander_ai_aai-page-view-product"]').each(function() {
+            products.push($(this).html());
+        });
+
+        $.ajax(info.url, {
             method: 'post',
             data: {
-                details: data.details
+                details: info.details,
+                products: products
             },
             dataType: 'json',
             success: function (response) {

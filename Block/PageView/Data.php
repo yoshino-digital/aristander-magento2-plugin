@@ -8,6 +8,8 @@ use Magento\Framework\View\Element\Template\Context;
 
 class Data extends Template
 {
+    protected $_template = 'AristanderAi_Aai::page-view/data.phtml';
+    
     /** @var PageRecorder */
     protected $pageRecorder;
 

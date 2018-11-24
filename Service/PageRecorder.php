@@ -1,6 +1,9 @@
 <?php
 namespace AristanderAi\Aai\Service;
 
+use AristanderAi\Aai\Block\PageView\Product as ProductBlock;
+use AristanderAi\Aai\Block\PageView\ProductFactory;
+use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Framework\Pricing\SaleableInterface;
@@ -12,7 +15,12 @@ use Magento\Checkout\Model\Session;
 
 class PageRecorder
 {
-    /** @var \AristanderAi\Aai\Model\Event */
+    /**
+     * @var array stores IDs of recorded products to avoid double processing
+     */
+    protected $recordedProducts;
+
+    /** @var Event */
     protected $event;
 
     /** @var EventFactory */
@@ -24,14 +32,19 @@ class PageRecorder
     /** @var Session */
     protected $session;
 
+    /** @var ProductFactory */
+    protected $productBlockFactory;
+
     public function __construct(
         EventFactory $eventFactory,
         StoreManagerInterface $storeManager,
-        Session $session
+        Session $session,
+        ProductFactory $productBlockFactory
     ) {
         $this->eventFactory = $eventFactory;
         $this->storeManager = $storeManager;
         $this->session = $session;
+        $this->productBlockFactory = $productBlockFactory;
     }
 
     /**
@@ -42,11 +55,8 @@ class PageRecorder
     public function start(): self
     {
         $this->event = $this->eventFactory->create(['type' => 'page']);
-
-        // Init details array
-        $this->event->setDetails([
-            'products' => [],
-        ]);
+        $this->event->collect();
+        $this->recordedProducts = [];
 
         return $this;
     }
@@ -54,7 +64,7 @@ class PageRecorder
     /**
      * Finalizes page record data collection and returns event object
      *
-     * @return \AristanderAi\Aai\Model\Event|null
+     * @return Event|null
      */
     public function exportEvent()
     {
@@ -62,25 +72,64 @@ class PageRecorder
             return null;
         }
 
+        $result = clone $this->event;
+        $details = $result->getDetails();
+
         // Workaround for cart and checkout pages not registering products
-        $details = $this->event->getDetails();
-        if (empty($details['products'])
-            && isset($details['page_name'])
+        if (isset($details['page_name'])
             && in_array($details['page_name'], ['basket', 'checkout'])
         ) {
             // Collect cart items from quote
+            $products = [];
             /** @var Item $item */
             foreach ($this->session->getQuote()->getAllVisibleItems() as $item) {
-                $this->recordProduct($item->getProduct());
+                $product = $item->getProduct();
+                $products[$product->getId()] = $this->extractProductDetails($product);
             }
+
+            $details['products'] = $products;
+            $result->setDetails($details);
         }
 
-        $result = clone $this->event;
+        return $result;
+    }
 
-        $details = $result->getDetails();
+    /**
+     * Tracks product display
+     *
+     * @param SaleableInterface $product
+     * @return string|null
+     */
+    public function recordProduct(SaleableInterface $product)
+    {
+        if (in_array($product->getId(), $this->recordedProducts)) {
+            return null;
+        }
 
-        // Push main product to the beginning
-        $products = $details['products'];
+        /** @var ProductBlock $block */
+        $block = $this->productBlockFactory->create();
+        $block->setDetails($this->extractProductDetails($product));
+        $result = $block->toHtml();
+
+        $this->recordedProducts[] = $product->getId();
+
+        return $result;
+    }
+
+    /**
+     * @param array $products
+     * @return self
+     */
+    public function recordProducts(array $products)
+    {
+        $details = $this->event->getDetails();
+        // Workaround for cart and checkout pages not registering products
+        if (empty($products) && isset($details['products'])) {
+            $products = $details['products'];
+        }
+
+        $details['products'] = array();
+
         if (isset($details['product_id']) && count($products) > 1) {
             $productId = $details['product_id'];
             assert(isset($products[$productId]), 'Main product not recorded');
@@ -99,25 +148,20 @@ class PageRecorder
 
         $details['products'] = $products;
 
-        $result->setDetails($details);
+        $this->event->setDetails($details);
 
-        return $result;
+        return $this;
     }
 
     /**
-     * Tracks product display
+     * Extracts required details from a given product
      *
      * @param SaleableInterface $product
-     * @return self
+     * @return array
      */
-    public function recordProduct(SaleableInterface $product): self
+    public function extractProductDetails(SaleableInterface $product)
     {
-        $details = $this->event->getDetails();
-        if (isset($details['products'][$product->getId()])) {
-            return $this;
-        }
-
-        $productDetails = [
+        $result = [
             'product_id' => $product->getId(),
         ];
 
@@ -129,7 +173,7 @@ class PageRecorder
         $min = $finalPriceModel->getMinimalPrice()->getValue();
         /** @var float $max */
         $max = $finalPriceModel->getMaximalPrice()->getValue();
-        $productDetails['price'] = $min == $max
+        $result['price'] = $min == $max
             ? $min
             : compact('min', 'max');
 
@@ -138,7 +182,7 @@ class PageRecorder
         if (false !== $min) {
             /** @var float $max */
             $max = $finalPriceModel->getMaximalPrice()->getAdjustmentAmount('tax');
-            $productDetails['tax_amount'] = $min == $max
+            $result['tax_amount'] = $min == $max
                 ? $min
                 : compact('min', 'max');
         }
@@ -146,15 +190,12 @@ class PageRecorder
         /** @var Store $store */
         try {
             $store = $this->storeManager->getStore();
-            $productDetails['currency_code'] = $store->getCurrentCurrencyCode();
+            $result['currency_code'] = $store->getCurrentCurrencyCode();
         } catch (NoSuchEntityException $e) {
             // Just do not set currency code
         }
 
-        $details['products'][$product->getId()] = $productDetails;
-        $this->event->setDetails($details);
-
-        return $this;
+        return $result;
     }
 
     //
@@ -172,10 +213,21 @@ class PageRecorder
     }
 
     /**
-     * @return \AristanderAi\Aai\Model\Event
+     * @return Event
      */
     public function getEvent()
     {
         return $this->event;
+    }
+
+    /**
+     * @param Event $event
+     * @return self
+     */
+    public function setEvent(Event $event)
+    {
+        $this->event = $event;
+
+        return $this;
     }
 }

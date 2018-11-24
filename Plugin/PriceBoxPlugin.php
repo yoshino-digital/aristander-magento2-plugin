@@ -14,12 +14,17 @@ class PriceBoxPlugin
         $this->pageRecorder = $pageRecorder;
     }
 
-    public function beforeRenderAmount(PriceBox $subject)
+    public function afterRenderAmount(PriceBox $subject, $result)
     {
         if (!$this->pageRecorder->isStarted()) {
-            return;
+            return $result;
         }
 
-        $this->pageRecorder->recordProduct($subject->getSaleableItem());
+        $injectHtml = $this->pageRecorder->recordProduct($subject->getSaleableItem());
+        if (!empty($injectHtml)) {
+            $result .= "\n" . $injectHtml;
+        }
+
+        return $result;
     }
 }
