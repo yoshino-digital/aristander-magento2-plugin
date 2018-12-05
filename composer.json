@@ -1,6 +1,6 @@
 {
-  "name": "aristander-ai/aai",
-  "description": "Aristander.ai support for Magento 2.x",
+  "name": "aristanderai/aai",
+  "description": "AristanderAI learns what your consumers are willing to pay and adjusts prices for you. It uses the latest advances in machine learning to boost your shop revenue and net profit.",
   "type": "magento2-module",
   "version": "0.1.1",
   "require": {
