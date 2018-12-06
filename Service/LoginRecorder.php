@@ -33,7 +33,7 @@ class LoginRecorder
         $event->collect();
 
         $event->setDetails([
-            'user_id' => $event->getUserId(),
+            'user_id' => (string) $event->getUserId(),
         ]);
 
         $this->eventRepository->save($event);

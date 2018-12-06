@@ -32,7 +32,7 @@ class UserCreationRecorder
         $event->collect();
 
         $event->setDetails(array(
-            'user_id' => $userId,
+            'user_id' => (string) $userId,
         ));
 
         $this->eventRepository->save($event);

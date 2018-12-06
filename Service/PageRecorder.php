@@ -3,6 +3,7 @@ namespace AristanderAi\Aai\Service;
 
 use AristanderAi\Aai\Block\PageView\Product as ProductBlock;
 use AristanderAi\Aai\Block\PageView\ProductFactory;
+use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventFactory;
 use Magento\Framework\Exception\NoSuchEntityException;
@@ -35,16 +36,21 @@ class PageRecorder
     /** @var ProductFactory */
     protected $productBlockFactory;
 
+    /** @var Data */
+    protected $helperData;
+
     public function __construct(
         EventFactory $eventFactory,
         StoreManagerInterface $storeManager,
         Session $session,
-        ProductFactory $productBlockFactory
+        ProductFactory $productBlockFactory,
+        Data $helperData
     ) {
         $this->eventFactory = $eventFactory;
         $this->storeManager = $storeManager;
         $this->session = $session;
         $this->productBlockFactory = $productBlockFactory;
+        $this->helperData = $helperData;
     }
 
     /**
@@ -162,7 +168,7 @@ class PageRecorder
     public function extractProductDetails(SaleableInterface $product)
     {
         $result = [
-            'product_id' => $product->getId(),
+            'product_id' => (string) $product->getId(),
         ];
 
         /** @var FinalPrice $finalPriceModel */
@@ -170,9 +176,13 @@ class PageRecorder
             FinalPrice::PRICE_CODE);
 
         /** @var float $min */
-        $min = $finalPriceModel->getMinimalPrice()->getValue();
+        $min = $this->helperData->formatPrice(
+            $finalPriceModel->getMinimalPrice()->getValue()
+        );
         /** @var float $max */
-        $max = $finalPriceModel->getMaximalPrice()->getValue();
+        $max = $this->helperData->formatPrice(
+            $finalPriceModel->getMaximalPrice()->getValue()
+        );
         $result['price'] = $min == $max
             ? $min
             : compact('min', 'max');
@@ -180,8 +190,11 @@ class PageRecorder
         /** @var float $min */
         $min = $finalPriceModel->getMinimalPrice()->getAdjustmentAmount('tax');
         if (false !== $min) {
+            $min = $this->helperData->formatPrice($min);
             /** @var float $max */
-            $max = $finalPriceModel->getMaximalPrice()->getAdjustmentAmount('tax');
+            $max = $this->helperData->formatPrice(
+                $finalPriceModel->getMaximalPrice()->getAdjustmentAmount('tax')
+            );
             $result['tax_amount'] = $min == $max
                 ? $min
                 : compact('min', 'max');

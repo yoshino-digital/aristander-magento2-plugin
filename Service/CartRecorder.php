@@ -3,24 +3,30 @@ namespace AristanderAi\Aai\Service;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
+use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Item;
 
 class CartRecorder
 {
+    protected $events = [];
+    
     /** @var EventFactory */
     protected $eventFactory;
 
     /** @var EventRepository */
     protected $eventRepository;
 
-    protected $events = [];
+    /** @var Data */
+    protected $helperData;
 
     public function __construct(
         EventFactory $eventFactory,
-        EventRepository $eventRepository
+        EventRepository $eventRepository,
+        Data $helperData
     ) {
         $this->eventFactory = $eventFactory;
         $this->eventRepository = $eventRepository;
+        $this->helperData = $helperData;
     }
 
     /**
@@ -59,13 +65,19 @@ class CartRecorder
             $event->collect();
             $event->setDetails([
                 'action' => $action,
-                'product_id' => $item->getProduct()->getId(),
+                'product_id' => (string) $item->getProduct()->getId(),
                 'quantity' => 'deletion' != $action
-                    ? $item->getQty()
-                    : 0,
-                'price' => $item->getPrice(),
-                'tax_amount' => $item->getTaxAmount(),
-                'price_incl_tax' => $item->getPriceInclTax(),
+                    ? (string) $item->getQty()
+                    : '0',
+                'price' => $this->helperData->formatPrice(
+                    $item->getPrice()
+                ),
+                'tax_amount' => $this->helperData->formatPrice(
+                    $item->getTaxAmount()
+                ),
+                'price_incl_tax' => $this->helperData->formatPrice(
+                    $item->getPriceInclTax()
+                ),
                 'currency_code' => $item->getStore()->getCurrentCurrencyCode(),
             ]);
 

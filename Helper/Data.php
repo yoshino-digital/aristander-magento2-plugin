@@ -4,6 +4,7 @@ namespace AristanderAi\Aai\Helper;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
+use Magento\Framework\Pricing\PriceCurrencyInterface;
 use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
@@ -13,13 +14,20 @@ class Data extends AbstractHelper
     /** @var string Platform name for generating full version string */
     protected $platformName = 'magento-2';
 
+    /** @var ModuleListInterface */
     protected $moduleList;
+    
+    /** @var PriceCurrencyInterface */
+    protected $priceCurrency;
 
     public function __construct(
         Context $context,
-        ModuleListInterface $moduleList
+        ModuleListInterface $moduleList,
+        PriceCurrencyInterface $priceCurrency
     ) {
         $this->moduleList = $moduleList;
+        $this->priceCurrency = $priceCurrency;
+        
         parent::__construct($context);
     }
 
@@ -128,5 +136,18 @@ class Data extends AbstractHelper
     public function getConfigPath()
     {
         return $this->configPath;
+    }
+
+    /**
+     * @param $value
+     * @return string|null
+     */
+    public function formatPrice($value)
+    {
+        if (is_null($value)) {
+            return null;
+        }
+
+        return (string) $this->priceCurrency->round($value);
     }
 }

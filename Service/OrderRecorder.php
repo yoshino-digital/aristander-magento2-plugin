@@ -3,6 +3,7 @@ namespace AristanderAi\Aai\Service;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
+use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Model\Order;
@@ -18,14 +19,19 @@ class OrderRecorder
     /** @var QuoteRepository */
     protected $quoteRepository;
 
+    /** @var Data */
+    protected $helperData;
+
     public function __construct(
         EventFactory $eventFactory,
         EventRepository $eventRepository,
-        QuoteRepository $quoteRepository
+        QuoteRepository $quoteRepository,
+        Data $helperData
     ) {
         $this->eventFactory = $eventFactory;
         $this->eventRepository = $eventRepository;
         $this->quoteRepository = $quoteRepository;
+        $this->helperData = $helperData;
     }
 
     /**
@@ -40,7 +46,7 @@ class OrderRecorder
         $event->collect();
 
         $details = [
-            'order_id' => $order->getIncrementId(),
+            'order_id' => (string) $order->getIncrementId(),
             'products' => [],
             'order_costs' => [],
         ];
@@ -55,24 +61,40 @@ class OrderRecorder
             $origPrice = min($item->getPrice(), $item->getOriginalPrice());
 
             $details['products'][] = [
-                'product_id' => $item->getProductId(),
-                'quantity' => (float) $item->getQtyOrdered(),
-                'discount' => $item->getDiscountAmount(),
-                'additional_cost' => $item->getPriceInclTax() - $origPrice,
-                'price' => $item->getPrice(),
+                'product_id' => (string) $item->getProductId(),
+                'quantity' => (string) $item->getQtyOrdered(),
+                'discount' => $this->helperData->formatPrice(
+                    $item->getDiscountAmount()
+                ),
+                'additional_cost' => $this->helperData->formatPrice(
+                    $item->getPriceInclTax() - $origPrice
+                ),
+                'price' => $this->helperData->formatPrice(
+                    $item->getPrice()
+                ),
                 //TODO: remove if not used
-                'item_price' => $item->getPrice(),
-                'subtotal' => $item->getRowTotal(),
-                'subtotal_modifier' => $item->getRowTotal()
-                    - $origPrice * $item->getQtyOrdered(),
-                'tax_amount' => $item->getTaxAmount(),
-                'price_incl_tax' => $item->getPriceInclTax(),
+                'item_price' => $this->helperData->formatPrice(
+                    $item->getPrice()
+                ),
+                'subtotal' => $this->helperData->formatPrice(
+                    $item->getRowTotal()
+                ),
+                'subtotal_modifier' => $this->helperData->formatPrice(
+                    $item->getRowTotal() - $origPrice * $item->getQtyOrdered()
+                ),
+                'tax_amount' => $this->helperData->formatPrice(
+                    $item->getTaxAmount()
+                ),
+                'price_incl_tax' => $this->helperData->formatPrice(
+                    $item->getPriceInclTax()
+                ),
                 'currency_code' => $item->getStore()->getCurrentCurrencyCode(),
             ];
         }
 
         $quote = $this->quoteRepository->get($order->getQuoteId());
 
+        $orderCosts = [];
         /** @var Total $total */
         foreach ($quote->getTotals() as $total) {
             $code = $total->getCode();
@@ -92,24 +114,30 @@ class OrderRecorder
                 continue;
             }
 
+            $orderCosts[$code] = $value;
+        }
+
+        if (!isset($orderCosts['discount'])) {
+            // Discount is not reflected in quote totals so collect it explicitly
+            $value = $order->getDiscountAmount();
+            if (0 != $value) {
+                $orderCosts['discount'] = $value;
+            }
+        }
+        
+        foreach ($orderCosts as $code => $value) {
             $details['order_costs'][] = [
                 $code,
-                $value,
-            ];
+                $this->helperData->formatPrice($value)
+            ];    
         }
 
-        // Discount is not reflected in quote totals so collect it explicitly
-        $value = $order->getDiscountAmount();
-        if (0 != $value) {
-            $details['order_costs'][] = [
-                'discount',
-                $value,
-            ];
-        }
-
-        $details['total'] = $order->getGrandTotal();
-        $details['total_modifier']
-            = $order->getGrandTotal() - $order->getSubtotal();
+        $details['total'] = $this->helperData->formatPrice(
+            $order->getGrandTotal()
+        );
+        $details['total_modifier'] = $this->helperData->formatPrice(
+            $order->getGrandTotal() - $order->getSubtotal()
+        );
 
         $event->setDetails($details);
 
