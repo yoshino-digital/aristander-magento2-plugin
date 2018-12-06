@@ -12,7 +12,7 @@ class Visualization extends Field
     protected $_template = 'system/config/visualization.phtml';
 
     /** @var string Image URL template. Use {apiKey} placeholder to specify the API key position */
-    protected $imageUrlTemplate = 'https://staging.api.aristander.ai/visualization/{apiKey}.png';
+    protected $imageUrlTemplate = 'https://api.aristander.ai/visualization/{apiKey}.png';
 
     /** @var string Link URL template. Use {apiKey} placeholder to specify the API key position */
     protected $linkUrlTemplate = 'https://aristander.ai/app';

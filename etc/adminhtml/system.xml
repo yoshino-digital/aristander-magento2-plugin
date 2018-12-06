@@ -35,13 +35,13 @@
             </group>
         </section>
 
-        <section id="aai_visualization" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+        <section id="aai_dashboard" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
             <class>separator-top</class>
-            <label>Visualization</label>
+            <label>Dashboard</label>
             <tab>aristander_ai_aai</tab>
             <resource>AristanderAi_Aai::aai</resource>
-            <group id="visualization" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
-                <label>Visualization</label>
+            <group id="dashboard" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="0" showInStore="0">
+                <label>Dashboard</label>
                 <field id="visualization" showInDefault="1" showInWebsite="0" showInStore="0">
                     <frontend_model>AristanderAi\Aai\Block\Adminhtml\System\Config\Visualization</frontend_model>
                 </field>
