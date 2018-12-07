@@ -7,13 +7,6 @@ use Magento\Framework\View\Element\Template\Context;
 
 class Product extends Template
 {
-    public function __construct(
-        Context $context,
-        array $data = []
-    ) {
-        parent::__construct($context, $data);
-    }
-
     public function setDetails(array $value)
     {
         return $this->setData('details', $value);

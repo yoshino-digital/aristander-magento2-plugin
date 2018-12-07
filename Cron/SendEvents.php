@@ -202,10 +202,10 @@ class SendEvents
         if (isset($response['event_messages'])) {
             $notAcceptedEvents = $response['event_messages'];
         }
-        $count = array(
+        $count = [
             'accepted' => $response['n_valid_events'],
             'not-accepted' => count($notAcceptedEvents),
-        );
+        ];
         $this->logger->debug(
             "Event page sent OK. Accepted events: {$count['accepted']}. "
             . "Invalid events: {$count['not-accepted']}."
@@ -231,8 +231,7 @@ class SendEvents
                     [$response->getStatusCode(), $response->getBody()]
                 ));
             }
-        } /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-        catch (\Zend\Http\Exception\RuntimeException $e) {
+        } catch (\Zend\Http\Exception\RuntimeException $e) {
             throw new Exception(__(
                 'Error sending API request: %1',
                 [$e->getMessage()]

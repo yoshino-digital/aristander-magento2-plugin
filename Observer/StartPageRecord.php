@@ -57,17 +57,10 @@ class StartPageRecord implements ObserverInterface
             $details['page_name'] = 'product_page';
 
             $details['product_id'] = $request->getParam('id');
-            assert($details['product_id'], 'Product ID is empty');
-        }  elseif (2 == count($path)
-            && 'checkout' == $path[0]
-            && 'cart' == $path[1]
-        ) {
+        } elseif (2 == count($path) && 'checkout' == $path[0] && 'cart' == $path[1]) {
             // Cart page
             $details['page_name'] = 'basket';
-        } elseif (('checkout' == $path[0])
-            ||
-            ('multishipping' == $path[0] && 'checkout' == $path[1])
-        ) {
+        } elseif (('checkout' == $path[0]) || ('multishipping' == $path[0] && 'checkout' == $path[1])) {
             // Cart page
             $details['page_name'] = 'checkout';
         }

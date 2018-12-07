@@ -11,7 +11,7 @@ if (!$event) {
 {
     "*": {
         "AristanderAi_Aai/js/track-page": {
-            "url": "<?= $block->escapeJs($this->getTrackUrl()) ?>",
+            "url": "<?= $block->escapeJs($block->getTrackUrl()) ?>",
             "details": "<?= $block->escapeJs(base64_encode(serialize($event->getDetails()))) ?>"
         }
     }

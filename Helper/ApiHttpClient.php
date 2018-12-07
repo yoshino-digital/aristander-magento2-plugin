@@ -58,8 +58,7 @@ class ApiHttpClient extends AbstractHelper
         }
 
         try {
-            //MEQP2.Classes.ResourceModel.OutsideOfResourceModel do not allow calling reset method
-            call_user_func([$this->httpClient, 'reset']);
+            $this->httpClient->reset();
 
             $httpClientOptions = $this->commonHttpClientOptions;
 
@@ -87,8 +86,7 @@ class ApiHttpClient extends AbstractHelper
             $this->httpClient->setHeaders([
                 'Authorization' => 'Basic ' . base64_encode($apiKey . ':')
             ]);
-        }
-        catch (InvalidArgumentException $e) {
+        } catch (InvalidArgumentException $e) {
             throw new Exception(__(
                 'HTTP client configuration error: %1',
                 [$e->getMessage()]

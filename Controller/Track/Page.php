@@ -25,11 +25,11 @@ class Page extends Action
     private $pageRecorder;
 
     public function __construct(
+        Context $context,
         EventFactory $eventFactory,
         EventRepository $eventRepository,
         JsonFactory $resultJsonFactory,
-        PageRecorder $pageRecorder,
-        Context $context
+        PageRecorder $pageRecorder
     ) {
         $this->eventFactory = $eventFactory;
         $this->eventRepository = $eventRepository;
@@ -40,8 +40,8 @@ class Page extends Action
     }
 
     public function execute()
-	{
-	    $result = $this->resultJsonFactory->create();
+    {
+        $result = $this->resultJsonFactory->create();
 
         $event = $this->eventFactory->create(['type' => 'page']);
         if (!$event->isEnabled()) {
@@ -59,7 +59,6 @@ class Page extends Action
             $this->pageRecorder
                 ->setEvent($event)
                 ->recordProducts($products);
-
         } catch (ValidationException $e) {
             /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
             $result->setHttpResponseCode(\Magento\Framework\Webapi\Exception::HTTP_BAD_REQUEST)

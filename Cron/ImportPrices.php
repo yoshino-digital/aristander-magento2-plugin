@@ -85,7 +85,8 @@ class ImportPrices
         if (!$response->isOk()) {
             throw new Exception(__(
                 'API error %1: %2',
-                [$response->getStatusCode(), $response->getBody()]));
+                [$response->getStatusCode(), $response->getBody()])
+            );
         }
 
         $this->process($response->getStream());

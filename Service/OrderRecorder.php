@@ -40,7 +40,7 @@ class OrderRecorder
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function record(Order $order): self
+    public function record(Order $order)
     {
         $event = $this->eventFactory->create(['type' => 'order']);
         $event->collect();

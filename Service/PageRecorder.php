@@ -58,7 +58,7 @@ class PageRecorder
      *
      * @return self
      */
-    public function start(): self
+    public function start()
     {
         $this->event = $this->eventFactory->create(['type' => 'page']);
         $this->event->collect();
