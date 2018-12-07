@@ -7,14 +7,8 @@ use Magento\Framework\Stdlib\DateTime\DateTime;
 
 class Event extends AbstractDb
 {
-    /**
-     * Serializable field: details
-     * @var array
-     */
-    protected $_serializableFields = ['details' => [[], []]];
-
     /** @var DateTime */
-    protected $date;
+    private $date;
 
     public function __construct(
         Context $context,
@@ -29,18 +23,24 @@ class Event extends AbstractDb
     protected function _construct()
     {
         $this->_init('aai_event', 'id');
+        $this->_serializableFields = ['details' => [[], []]];
     }
 
     /**
      * @throws \Magento\Framework\Exception\LocalizedException if not properly configured
      * @return self
      */
-    public function cleanUp(): self
+    public function cleanUp()
     {
-        $this->getConnection()->delete($this->getMainTable(), [
-            'synced_at < ?' => $this->date->gmtDate(null,
-                strtotime('-1 day')),
-        ]);
+        $this->getConnection()->delete(
+            $this->getMainTable(),
+            [
+                'synced_at < ?' => $this->date->gmtDate(
+                    null,
+                    strtotime('-1 day')
+                ),
+            ]
+        );
 
         return $this;
     }

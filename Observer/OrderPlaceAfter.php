@@ -9,10 +9,10 @@ use Magento\Framework\Event\ObserverInterface;
 class OrderPlaceAfter implements ObserverInterface
 {
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var OrderRecorder */
-    protected $orderRecorder;
+    private $orderRecorder;
 
     public function __construct(
         Data $helperData,

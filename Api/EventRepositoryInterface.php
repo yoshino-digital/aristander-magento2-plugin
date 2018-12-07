@@ -11,7 +11,7 @@ interface EventRepositoryInterface
      * @param int $id
      * @return EventInterface|null
      */
-    public function get($id): EventInterface;
+    public function get($id);
 
     /**
      * Saves event model
@@ -19,5 +19,5 @@ interface EventRepositoryInterface
      * @param EventInterface $event
      * @return self
      */
-    public function save(EventInterface $event): self;
+    public function save(EventInterface $event);
 }

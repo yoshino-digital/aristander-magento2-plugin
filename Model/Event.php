@@ -7,6 +7,7 @@ use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Data\Collection\AbstractDb;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Framework\HTTP\Header;
 use Magento\Framework\Model\AbstractModel;
 use Magento\Framework\Model\Context;
 use Magento\Framework\Model\ResourceModel\AbstractResource;
@@ -21,19 +22,22 @@ use Magento\Store\Model\StoreManagerInterface;
 class Event extends AbstractModel implements EventInterface
 {
     /** @var Session */
-    protected $session;
+    private $session;
 
     /** @var StoreManagerInterface */
-    protected $storeManager;
+    private $storeManager;
 
     /** @var  \Magento\Store\Api\Data\StoreInterface */
-    protected $store;
+    private $store;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var ProductResource */
-    protected $productResource;
+    private $productResource;
+
+    /** @var Header */
+    private $httpHeader;
 
     /**
      * Event constructor.
@@ -43,9 +47,10 @@ class Event extends AbstractModel implements EventInterface
      * @param Session $session
      * @param StoreManagerInterface $storeManager
      * @param Data $helperData
+     * @param ProductResource $productResource
+     * @param Header $httpHeader
      * @param AbstractResource|null $resource
      * @param AbstractDb|null $resourceCollection
-     * @param ProductResource $productResource
      * @param array $data
      */
     public function __construct(
@@ -55,6 +60,7 @@ class Event extends AbstractModel implements EventInterface
         StoreManagerInterface $storeManager,
         Data $helperData,
         ProductResource $productResource,
+        Header $httpHeader,
         AbstractResource $resource = null,
         AbstractDb $resourceCollection = null,
         array $data = []
@@ -63,6 +69,7 @@ class Event extends AbstractModel implements EventInterface
         $this->storeManager = $storeManager;
         $this->helperData = $helperData;
         $this->productResource = $productResource;
+        $this->httpHeader = $httpHeader;
 
         parent::__construct(
             $context,
@@ -83,7 +90,7 @@ class Event extends AbstractModel implements EventInterface
      *
      * @return bool
      */
-    public function isEnabled(): bool
+    public function isEnabled()
     {
         return $this->hasType()
             ? $this->helperData->isEventTypeEnabled($this->getType())
@@ -118,7 +125,7 @@ class Event extends AbstractModel implements EventInterface
         }
         $key = 'user_agent';
         if (!$this->hasData($key)) {
-            $this->setData($key, $_SERVER['HTTP_USER_AGENT']);
+            $this->setData($key, $this->httpHeader->getHttpUserAgent());
         }
 
         // Store data
@@ -143,7 +150,7 @@ class Event extends AbstractModel implements EventInterface
      */
     public function getStore()
     {
-        if (is_null($this->store)) {
+        if (null === $this->store) {
             try {
                 $this->store = $this->storeManager->getStore();
             } catch (NoSuchEntityException $e) {
@@ -202,7 +209,8 @@ class Event extends AbstractModel implements EventInterface
         // Add version stamp
         if (isset($result['version']) && '' != $result['version']) {
             $result['plugin_version'] = $this->helperData->getVersionStamp(
-                $result['version']);
+                $result['version']
+            );
             unset($result['version']);
         }
 
@@ -212,14 +220,18 @@ class Event extends AbstractModel implements EventInterface
             case 'page':
             case 'order':
                 foreach ($details['products'] as &$product) {
-                    $product['product_id'] = $this->productIdToSku($product['product_id']);
+                    $product['product_id'] = $this->productIdToSku(
+                        $product['product_id']
+                    );
                 }
                 unset($product);
 
                 break;
 
             case 'basket':
-                $details['product_id'] = $this->productIdToSku($details['product_id']);
+                $details['product_id'] = $this->productIdToSku(
+                    $details['product_id']
+                );
 
                 break;
         }
@@ -243,12 +255,15 @@ class Event extends AbstractModel implements EventInterface
      * @param int $productId
      * @return string|null
      */
-    protected function productIdToSku($productId)
+    private function productIdToSku($productId)
     {
-        $result = $this->productResource->getAttributeRawValue($productId,
-            'sku', $this->getStoreId());
+        $result = $this->productResource->getAttributeRawValue(
+            $productId,
+            'sku',
+            $this->getStoreId()
+        );
 
-        return $result['sku'] ?? null;
+        return $result['sku'] ?: null;
     }
 
     //
@@ -275,7 +290,7 @@ class Event extends AbstractModel implements EventInterface
     /**
      * @return bool
      */
-    public function hasType(): bool
+    public function hasType()
     {
         return $this->hasData(self::TYPE);
     }
@@ -447,7 +462,7 @@ class Event extends AbstractModel implements EventInterface
      */
     public function setTimestamp($value = null)
     {
-        if (is_null($value)) {
+        if (null === $value) {
             $value = time();
         }
 

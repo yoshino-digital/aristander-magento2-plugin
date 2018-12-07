@@ -9,16 +9,16 @@ use Magento\Store\Model\ScopeInterface;
 
 class Data extends AbstractHelper
 {
-    protected $configPath = 'aai';
+    private $configPath = 'aai';
 
     /** @var string Platform name for generating full version string */
-    protected $platformName = 'magento-2';
+    private $platformName = 'magento-2';
 
     /** @var ModuleListInterface */
-    protected $moduleList;
+    private $moduleList;
     
     /** @var PriceCurrencyInterface */
-    protected $priceCurrency;
+    private $priceCurrency;
 
     public function __construct(
         Context $context,
@@ -42,7 +42,8 @@ class Data extends AbstractHelper
     {
         return $this->scopeConfig->getValue(
             $this->configPath . '/' . $code,
-            ScopeInterface::SCOPE_STORE, $storeId
+            ScopeInterface::SCOPE_STORE,
+            $storeId
         );
     }
 
@@ -144,7 +145,7 @@ class Data extends AbstractHelper
      */
     public function formatPrice($value)
     {
-        if (is_null($value)) {
+        if (null === $value) {
             return null;
         }
 

@@ -4,6 +4,7 @@
         <referenceContainer name="before.body.end">
             <block class="AristanderAi\Aai\Block\PageView\Data"
                    name="aristander_ai_aai.page-view.data"
+                   template="AristanderAi_Aai::page-view/data.phtml"
                    after="-">
             </block>
         </referenceContainer>

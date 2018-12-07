@@ -14,36 +14,35 @@ use /** @noinspection PhpUndefinedClassInspection */
 
 class ImportPrices
 {
-    protected $endPointUrl = 'https://api.aristander.ai/prices';
+    private $endPointUrl = 'https://api.aristander.ai/prices';
 
     /** @var array Expected column names */
-    protected $columnNames = [
+    private $columnNames = [
         'product_id',
         'price',
     ];
 
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
-    protected $logger;
+    private $logger;
 
     /** @var \Zend\Http\Client */
-    protected $httpClient;
+    private $httpClient;
 
     /** @var ApiHttpClient */
-    protected $helperApiHttpClient;
+    private $helperApiHttpClient;
 
     /** @var ProductRepository */
-    protected $productRepository;
+    private $productRepository;
 
     /** @var ResourceConnection */
-    protected $resource;
+    private $resource;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     public function __construct(
-        /** @noinspection PhpUndefinedClassInspection */
-        LoggerInterface $logger,
+        /** @noinspection PhpUndefinedClassInspection */LoggerInterface $logger,
         ApiHttpClient $helperApiHttpClient,
         ProductRepository $productRepository,
         ResourceConnection $resource,
@@ -84,7 +83,9 @@ class ImportPrices
         /** @var \Zend\Http\Response\Stream $response */
         $response = $this->httpClient->send();
         if (!$response->isOk()) {
-            throw new Exception("API error {$response->getStatusCode()}: {$response->getBody()}");
+            throw new Exception(__(
+                'API error %1: %2',
+                [$response->getStatusCode(), $response->getBody()]));
         }
 
         $this->process($response->getStream());
@@ -97,7 +98,7 @@ class ImportPrices
      * @throws Exception
      * @throws \Exception
      */
-    protected function process($stream)
+    private function process($stream)
     {
         $connection = $this->resource->getConnection();
 
@@ -110,43 +111,31 @@ class ImportPrices
             $lineNo = 0;
             while (!feof($stream)) {
                 $lineNo++;
-                $row = fgetcsv($stream);
-                if (!is_array($row) || (1 == count($row) && is_null($row[0]))) {
-                    // Empty or bad record
-                    continue;
-                }
-                if ('' === $row[0]) {
-                    // Skip records with empty fields
+                $row = $this->readRow($stream);
+                if (null === $row) {
                     continue;
                 }
 
-                if (is_null($columnIndexes)) {
+                if (null === $columnIndexes) {
                     // Parse header
                     $columns = $row;
-                    $columnIndexes = [];
-
-                    if (count($columns) < count($this->columnNames)) {
-                        // Too little columns
-                        throw new Exception("Error at CSV line {$lineNo}: Invalid file format - expect at least "
-                            . count($this->columnNames) . " columns, found " . count($row));
-                    }
-
-                    foreach ($this->columnNames as $columnName) {
-                        $index = array_search($columnName, $columns);
-                        if (FALSE === $index) {
-                            throw new Exception("Error at CSV line {$lineNo}: Invalid file format - column '{$columnName}' not found");
-                        }
-
-                        $columnIndexes[$columnName] = $index;
+                    try {
+                        $columnIndexes = $this->mapColumns($columns);
+                    } catch (Exception $e) {
+                        throw new Exception(__(
+                            'Error at CSV line %1: %2',
+                            [$lineNo, $e->getMessage()]
+                        ));
                     }
 
                     continue;
                 }
 
                 if (count($row) != count($columns)) {
-                    throw new Exception("Error at CSV line {$lineNo}: Invalid file format - expect "
-                        . count($columns) . " columns, found "
-                        . count($row));
+                    throw new Exception(__(
+                        'Error at CSV line %1: Invalid file format - expect %2 columns, found %3',
+                        [$lineNo, count($columns), count($row)]
+                    ));
                 }
 
                 $data = [];
@@ -154,30 +143,89 @@ class ImportPrices
                     $data[$columnName] = $row[$columnIndexes[$columnName]];
                 }
 
-                /** @var Product $product */
                 try {
-                    $product = $this->productRepository->get($data['product_id']);
+                    $this->processProduct($data);
                 } catch (NoSuchEntityException $e) {
-                    $this->logger->warning("Error at CSV line {$lineNo}: Product SKU '{$data['product_id']}' not found");
-                    continue;
+                    $this->logger->warning(__(
+                        'Error at CSV line %1: Product SKU \%2\' not found',
+                        [$lineNo, $data['product_id']]
+                    ));
                 }
-
-                if ($product->getPrice() == $data['price']) {
-                    // Price is the same
-                    continue;
-                }
-
-                $product->setPrice($data['price']);
-
-                $this->productRepository->save($product);
             }
-
         } catch (\Exception $e) {
             $connection->rollBack();
             throw $e;
         }
 
         $connection->commit();
+    }
+
+    private function readRow($stream)
+    {
+        $result = fgetcsv($stream);
+        if (!is_array($result) || (1 == count($result) && null === $result[0])) {
+            return null;
+        }
+        if ('' === $result[0]) {
+            // Skip records with empty fields
+            return null;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $columns
+     * @return array
+     * @throws Exception
+     */
+    private function mapColumns(array $columns)
+    {
+        $result = [];
+
+        if (count($columns) < count($this->columnNames)) {
+            // Too little columns
+            throw new Exception(__(
+                'Invalid file format - expect at least %1 columns, found %2',
+                [count($this->columnNames), count($columns)]
+            ));
+        }
+
+        foreach ($this->columnNames as $columnName) {
+            $index = array_search($columnName, $columns);
+            if (false === $index) {
+                throw new Exception(__(
+                    'Invalid file format - column \'%1\' not found',
+                    [$columnName]
+                ));
+            }
+
+            $result[$columnName] = $index;
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $data
+     * @throws NoSuchEntityException
+     * @throws \Magento\Framework\Exception\CouldNotSaveException
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\StateException
+     */
+    private function processProduct(array $data)
+    {
+        /** @var Product $product */
+        $product = $this->productRepository->get($data['product_id']);
+
+        if ($product->getPrice() == $data['price']) {
+            // Price is the same
+            return;
+        }
+
+        $product->setPrice($data['price']);
+
+        $this->productRepository->save($product);
     }
 
     /**
@@ -187,11 +235,11 @@ class ImportPrices
      * @throws ApiHttpClient\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
      */
-    protected function initHttpClient()
+    private function initHttpClient()
     {
         $this->httpClient = $this->helperApiHttpClient->init([
             'url' => $this->helperData->getConfigValue('api/import_prices')
-                ?? $this->endPointUrl,
+                ?: $this->endPointUrl,
             'tmpStream' => true,
         ]);
     }

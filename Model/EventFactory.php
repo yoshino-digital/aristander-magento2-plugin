@@ -13,14 +13,14 @@ class EventFactory
      *
      * @var ObjectManagerInterface
      */
-    protected $objectManager = null;
+    private $objectManager = null;
 
     /**
      * Instance name to create
      *
      * @var string
      */
-    protected $instanceName = null;
+    private $instanceName = null;
 
     /**
      * Factory constructor
@@ -59,7 +59,7 @@ class EventFactory
         return $result;
     }
 
-    protected function _create($instanceName, array $data = [])
+    private function _create($instanceName, array $data = [])
     {
         return $this->objectManager->create($instanceName, $data);
     }
@@ -73,9 +73,12 @@ class EventFactory
      * @param string $type
      * @return string
      */
-    protected function typeToClass($type)
+    private function typeToClass($type)
     {
-        return str_replace(' ', '',
-            ucwords(str_replace('_', ' ', $type)));
+        return str_replace(
+            ' ',
+            '',
+            ucwords(str_replace('_', ' ', $type))
+        );
     }
 }

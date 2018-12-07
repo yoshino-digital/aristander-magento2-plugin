@@ -3,16 +3,17 @@ namespace AristanderAi\Aai\Service;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
+use Magento\Customer\Model\Customer;
 
 class LoginRecorder
 {
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
-    protected $events = [];
+    private $events = [];
 
     public function __construct(
         EventFactory $eventFactory,
@@ -23,17 +24,17 @@ class LoginRecorder
     }
 
     /**
+     * @param Customer $customer
      * @return self
-     * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function record(): self
+    public function record(Customer $customer)
     {
         $event = $this->eventFactory->create(['type' => 'login']);
         $event->collect();
 
         $event->setDetails([
-            'user_id' => (string) $event->getUserId(),
+            'user_id' => (string) $customer->getId(),
         ]);
 
         $this->eventRepository->save($event);

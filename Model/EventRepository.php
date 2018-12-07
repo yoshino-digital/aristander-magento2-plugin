@@ -15,10 +15,10 @@ class EventRepository implements EventRepositoryInterface
     /**
      * @var EventFactory
      */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var EventResource */
-    protected $eventResource;
+    private $eventResource;
 
     public function __construct(
         EventFactory $eventFactory,
@@ -32,7 +32,7 @@ class EventRepository implements EventRepositoryInterface
     /**
      * @inheritdoc
      */
-    public function get($id): EventInterface
+    public function get($id)
     {
         $result = $this->eventFactory->create();
         $this->eventResource->load($result, $id);
@@ -45,7 +45,7 @@ class EventRepository implements EventRepositoryInterface
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function save(EventInterface $event): EventRepositoryInterface
+    public function save(EventInterface $event)
     {
         /** @noinspection PhpParamsInspection */
         $this->eventResource->save($event);

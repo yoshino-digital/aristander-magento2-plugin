@@ -8,10 +8,8 @@ use Magento\Framework\View\Element\Template\Context;
 
 class Data extends Template
 {
-    protected $_template = 'AristanderAi_Aai::page-view/data.phtml';
-    
     /** @var PageRecorder */
-    protected $pageRecorder;
+    private $pageRecorder;
 
     public function __construct(
         Context $context,
@@ -26,7 +24,7 @@ class Data extends Template
     /**
      * @return PageRecorder
      */
-    public function getPageRecorder(): PageRecorder
+    public function getPageRecorder()
     {
         return $this->pageRecorder;
     }

@@ -8,6 +8,7 @@ use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
+use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
 use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Stdlib\DateTime\DateTime;
@@ -16,41 +17,40 @@ use /** @noinspection PhpUndefinedClassInspection */
 
 class SendEvents
 {
-    protected $endPointUrl = 'https://api.aristander.ai/events';
+    private $endPointUrl = 'https://api.aristander.ai/events';
 
-    protected $maxCount = 100;
+    private $maxCount = 100;
 
     /** @var \Zend\Http\Client */
-    protected $httpClient;
+    private $httpClient;
 
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
-    protected $logger;
+    private $logger;
 
     /** @var EventCollectionFactory */
-    protected $eventCollectionFactory;
+    private $eventCollectionFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
     /** @var EventResource */
-    protected $eventResource;
+    private $eventResource;
 
     /** @var ApiHttpClient */
-    protected $helperApiHttpClient;
+    private $helperApiHttpClient;
 
     /** @var DateTime */
-    protected $date;
+    private $date;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var ResourceConnection */
-    protected $resource;
+    private $resource;
 
     public function __construct(
-        /** @noinspection PhpUndefinedClassInspection */
-        LoggerInterface $logger,
+        /** @noinspection PhpUndefinedClassInspection */LoggerInterface $logger,
         EventCollectionFactory $eventCollectionFactory,
         EventRepository $eventRepository,
         EventResource $eventResource,
@@ -88,7 +88,7 @@ class SendEvents
 
         $this->logger->debug('Starting Aristander.ai event sending');
 
-        /** @var \AristanderAi\Aai\Model\ResourceModel\Event\Collection $eventCollection */
+        /** @var Collection $eventCollection */
         $eventCollection = $this->eventCollectionFactory->create()
             ->setStatusFilter(['pending', 'error']);
         if (!empty($this->maxCount)) {
@@ -98,81 +98,46 @@ class SendEvents
         if (0 != $eventCollection->getSize()) {
             $this->logger->debug("Found {$eventCollection->getSize()} pending events");
 
-            for ($pageNo = 1; $pageNo <= $eventCollection->getLastPageNumber(); $pageNo++) {
+            $pageCount = $eventCollection->getLastPageNumber();
+            for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
                 $this->logger->debug("Processing page #{$pageNo} of {$eventCollection->getLastPageNumber()}");
 
-                // Force fetching top pending events
-                $eventCollection->clear();
-                // The loop doesn't call setCurPage() because changing status to
-                // "success" moves events out of collection
-
-                $events = [];
-                /** @var Event $event */
-                foreach ($eventCollection as $event) {
-                    $events[] = $event->export();
-                }
-
-                if (!$events) {
+                $events = $this->exportEvents($eventCollection);
+                if (empty($events)) {
                     $this->logger->debug("Fetched no pending events, stopping page loop");
                     break;
                 }
 
                 $this->logger->debug("Fetched events: " . count($events));
-                $this->logger->debug("Sending event page #{$pageNo} of {$eventCollection->getLastPageNumber()}");
-
-                $syncDate = $this->date->gmtDate();
+                $this->logger->debug(
+                    "Sending event page #{$pageNo} of {$eventCollection->getLastPageNumber()}"
+                );
 
                 $exception = null;
                 $notAcceptedEvents = [];
                 try {
-                    $response = $this->sendEvents($events);
-                    if (isset($response['event_messages'])) {
-                        $notAcceptedEvents = $response['event_messages'];
-                    }
-                    $count = array(
-                        'accepted' => $response['n_valid_events'],
-                        'not-accepted' => count($notAcceptedEvents),
-                    );
-                    $this->logger->debug("Event page sent OK. Accepted events: {$count['accepted']}. Invalid events: {$count['not-accepted']}.");
+                    $status = $this->sendEventPage($events);
+                    $notAcceptedEvents = $status['notAcceptedEvents'];
                 } catch (Exception $exception) {
                     // Just assign $exception variable
-                    $this->logger->error("Event page sending error: {$exception->getMessage()}");
+                    $this->logger->error(
+                        "Event page sending error: {$exception->getMessage()}"
+                    );
                 }
 
                 $this->logger->debug("Updating processed event statuses");
 
-                $connection = $this->resource->getConnection();
-                $connection->beginTransaction();
-
-                /** @var Event $event */
-                foreach (array_values($eventCollection->getItems()) as $i => $event) {
-                    if (isset($notAcceptedEvents[$i])) {
-                        $event->setStatus('not-accepted');
-                        $event->setLastError($notAcceptedEvents[$i]);
-                        $event->setSyncedAt($syncDate);
-                    } elseif (is_null($exception)) {
-                        $event->setStatus('success');
-                        $event->setLastError(null);
-                        $event->setSyncedAt($syncDate);
-                    } else {
-                        $event->setStatus('error');
-                        $event->setLastError($exception->getMessage());
-                    }
-
-                    try {
-                        $this->eventRepository->save($event);
-                    } catch (\Exception $e) {
-                        $this->logger->error("Error saving event #{$event->getId()}: {$e->getMessage()}");
-                        $connection->rollBack();
-                        throw new Exception($e->getMessage());
-                    }
-                }
-
-                $connection->commit();
+                $this->updateEventStatuses(
+                    $eventCollection,
+                    $notAcceptedEvents,
+                    null !== $exception
+                        ? $exception->getMessage()
+                        : ''
+                );
 
                 $this->logger->debug("Event statuses updated OK");
 
-                if (!is_null($exception)) {
+                if (null !== $exception) {
                     break;
                 }
             }
@@ -208,28 +173,78 @@ class SendEvents
         }
     }
 
+    private function exportEvents(Collection $eventCollection)
+    {
+        // Force fetching top pending events
+        $eventCollection->clear();
+        // The loop doesn't call setCurPage() because changing status to
+        // "success" moves events out of collection
+
+        $result = [];
+        /** @var Event $event */
+        foreach ($eventCollection as $event) {
+            $result[] = $event->export();
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param array $events
+     * @return array
+     * @throws Exception
+     */
+    private function sendEventPage(array $events)
+    {
+        $notAcceptedEvents = [];
+
+        $response = $this->sendEvents($events);
+        if (isset($response['event_messages'])) {
+            $notAcceptedEvents = $response['event_messages'];
+        }
+        $count = array(
+            'accepted' => $response['n_valid_events'],
+            'not-accepted' => count($notAcceptedEvents),
+        );
+        $this->logger->debug(
+            "Event page sent OK. Accepted events: {$count['accepted']}. "
+            . "Invalid events: {$count['not-accepted']}."
+        );
+
+        return compact('notAcceptedEvents');
+    }
+
     /**
      * @param array $events
      * @return array Decoded response
      * @throws Exception
      */
-    protected function sendEvents(array $events)
+    private function sendEvents(array $events)
     {
         $this->httpClient->setRawBody(json_encode(compact('events')));
 
         try {
             $response = $this->httpClient->send();
             if (!$response->isOk()) {
-                throw new Exception("API error {$response->getStatusCode()}: {$response->getBody()}");
+                throw new Exception(__(
+                    'API error %1: %2',
+                    [$response->getStatusCode(), $response->getBody()]
+                ));
             }
         } /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
         catch (\Zend\Http\Exception\RuntimeException $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception(__(
+                'Error sending API request: %1',
+                [$e->getMessage()]
+            ));
         }
 
         $response = json_decode($response->getBody(), true);
         if (false === $response) {
-            throw new Exception("Error decoding JSON response: {$response->getBody()}");
+            throw new Exception(__(
+                'Error decoding JSON response: %1',
+                [$response->getBody()]
+            ));
         }
 
         /** @var array $response */
@@ -239,7 +254,7 @@ class SendEvents
     /**
      * @throws Exception
      */
-    protected function sendPingEvent()
+    private function sendPingEvent()
     {
         $this->sendEvents([
             [
@@ -251,17 +266,62 @@ class SendEvents
     }
 
     /**
+     * @param Collection $eventCollection
+     * @param array $notAcceptedEvents
+     * @param $errorMsg
+     * @throws Exception
+     */
+    private function updateEventStatuses(
+        Collection $eventCollection,
+        array $notAcceptedEvents,
+        $errorMsg
+    ) {
+        $syncDate = $this->date->gmtDate();
+
+        /** @var Event $event */
+        foreach (array_values($eventCollection->getItems()) as $i => $event) {
+            if (isset($notAcceptedEvents[$i])) {
+                $event->setStatus('not-accepted');
+                $event->setLastError($notAcceptedEvents[$i]);
+                $event->setSyncedAt($syncDate);
+            } elseif ('' != $errorMsg) {
+                $event->setStatus('success');
+                $event->setLastError(null);
+                $event->setSyncedAt($syncDate);
+            } else {
+                $event->setStatus('error');
+                $event->setLastError($errorMsg);
+            }
+        }
+
+        $connection = $this->resource->getConnection();
+        $connection->beginTransaction();
+
+        try {
+            $eventCollection->walk([$this->eventRepository, 'save']);
+        } catch (\Exception $e) {
+            $connection->rollBack();
+            throw new Exception(__(
+                'Error saving events: %1',
+                [$e->getMessage()]
+            ));
+        }
+
+        $connection->commit();
+    }
+
+    /**
      * Initializes HTTP client object
      *
      * @throws ApiHttpClient\NotConfiguredException
      * @throws ApiHttpClient\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
      */
-    protected function initHttpClient()
+    private function initHttpClient()
     {
         $this->httpClient = $this->helperApiHttpClient->init([
             'url' => $this->helperData->getConfigValue('api/send_events')
-                ?? $this->endPointUrl,
+                ?: $this->endPointUrl,
         ]);
     }
 }

@@ -10,13 +10,13 @@ use Magento\Framework\Event\ObserverInterface;
 class CustomerCreate implements ObserverInterface
 {
     /** @var bool Saves object status */
-    protected $isObjectNew;
+    private $isObjectNew;
     
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var UserCreationRecorder */
-    protected $userCreationRecorder;
+    private $userCreationRecorder;
 
     public function __construct(
         Data $helperData,

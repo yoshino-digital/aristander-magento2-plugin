@@ -1,7 +1,9 @@
 <?php
 namespace AristanderAi\Aai\Helper\ApiHttpClient;
 
-class Exception extends \Exception
+use Magento\Framework\Exception\LocalizedException;
+
+class Exception extends LocalizedException
 {
 
 }

@@ -26,7 +26,7 @@ class Collection extends AbstractCollection
      * @param string|array $status
      * @return self
      */
-    public function setStatusFilter($status): self
+    public function setStatusFilter($status)
     {
         if (is_array($status)) {
             $this->getSelect()->where('status IN (?)', $status);

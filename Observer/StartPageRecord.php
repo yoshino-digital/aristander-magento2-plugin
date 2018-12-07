@@ -10,21 +10,16 @@ use Magento\Framework\Event\ObserverInterface;
 class StartPageRecord implements ObserverInterface
 {
     /** @var Data */
-    protected $helperData;
-
-    /** @var Http */
-    protected $request;
+    private $helperData;
 
     /** @var PageRecorder */
-    protected $pageRecorder;
+    private $pageRecorder;
 
     public function __construct(
         Data $helperData,
-        PageRecorder $pageRecorder,
-        Http $request
+        PageRecorder $pageRecorder
     ) {
         $this->helperData = $helperData;
-        $this->request = $request;
         $this->pageRecorder = $pageRecorder;
     }
 
@@ -34,7 +29,10 @@ class StartPageRecord implements ObserverInterface
             return;
         }
 
-        if ($this->request->isAjax()) {
+        /** @var Http $request */
+        $request = $observer->getData('request');
+
+        if ($request->isAjax()) {
             return;
         }
 
@@ -45,13 +43,12 @@ class StartPageRecord implements ObserverInterface
 
         $event = $this->pageRecorder->getEvent();
 
-        $path = explode('/', trim($this->request->getPathInfo(), '/'));
+        $path = explode('/', trim($request->getPathInfo(), '/'));
         $details = $event->getDetails();
 
         if (1 == count($path) && '' == $path[0]) {
             // Home page
             $details['page_name'] = 'home';
-
         } elseif ('catalog' == $path[0]
             && 'product' == $path[1]
             && 'view' == $path[2]
@@ -59,7 +56,7 @@ class StartPageRecord implements ObserverInterface
             // Product view page
             $details['page_name'] = 'product_page';
 
-            $details['product_id'] = $this->request->getParam('id');
+            $details['product_id'] = $request->getParam('id');
             assert($details['product_id'], 'Product ID is empty');
         }  elseif (2 == count($path)
             && 'checkout' == $path[0]
@@ -67,8 +64,7 @@ class StartPageRecord implements ObserverInterface
         ) {
             // Cart page
             $details['page_name'] = 'basket';
-        } elseif (
-            ('checkout' == $path[0])
+        } elseif (('checkout' == $path[0])
             ||
             ('multishipping' == $path[0] && 'checkout' == $path[1])
         ) {
@@ -76,7 +72,7 @@ class StartPageRecord implements ObserverInterface
             $details['page_name'] = 'checkout';
         }
 
-        $details['page_url'] = $this->request->getUri()->toString();
+        $details['page_url'] = $request->getUri()->toString();
 
         $event->setDetails($details);
     }

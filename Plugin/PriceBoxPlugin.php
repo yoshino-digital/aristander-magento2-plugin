@@ -7,7 +7,7 @@ use AristanderAi\Aai\Service\PageRecorder;
 class PriceBoxPlugin
 {
     /** @var PageRecorder */
-    protected $pageRecorder;
+    private $pageRecorder;
 
     public function __construct(PageRecorder $pageRecorder)
     {

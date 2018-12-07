@@ -19,25 +19,25 @@ class PageRecorder
     /**
      * @var array stores IDs of recorded products to avoid double processing
      */
-    protected $recordedProducts;
+    private $recordedProducts;
 
     /** @var Event */
-    protected $event;
+    private $event;
 
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var StoreManagerInterface */
-    protected $storeManager;
+    private $storeManager;
 
     /** @var Session */
-    protected $session;
+    private $session;
 
     /** @var ProductFactory */
-    protected $productBlockFactory;
+    private $productBlockFactory;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     public function __construct(
         EventFactory $eventFactory,
@@ -134,11 +134,10 @@ class PageRecorder
             $products = $details['products'];
         }
 
-        $details['products'] = array();
+        $details['products'] = [];
 
         if (isset($details['product_id']) && count($products) > 1) {
             $productId = $details['product_id'];
-            assert(isset($products[$productId]), 'Main product not recorded');
             if (isset($products[$productId])) {
                 // Put main product to the beginning
                 $productItem = $products[$productId];
@@ -173,7 +172,8 @@ class PageRecorder
 
         /** @var FinalPrice $finalPriceModel */
         $finalPriceModel = $product->getPriceInfo()->getPrice(
-            FinalPrice::PRICE_CODE);
+            FinalPrice::PRICE_CODE
+        );
 
         /** @var float $min */
         $min = $this->helperData->formatPrice(

@@ -10,10 +10,10 @@ use Magento\Quote\Model\Quote\Item;
 class CartSave implements ObserverInterface
 {
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var CartRecorder */
-    protected $cartRecorder;
+    private $cartRecorder;
 
     public function __construct(
         Data $helperData,
@@ -48,7 +48,7 @@ class CartSave implements ObserverInterface
     /**
      * @param Observer $observer
      */
-    public function beforeSave(Observer $observer)
+    private function beforeSave(Observer $observer)
     {
         /** @var \Magento\Checkout\Model\Cart  $cart */
         $cart = $observer->getData('cart');
@@ -82,7 +82,7 @@ class CartSave implements ObserverInterface
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function afterSave()
+    private function afterSave()
     {
         $this->cartRecorder->saveEvents();
     }

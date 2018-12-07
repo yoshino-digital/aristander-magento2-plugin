@@ -13,23 +13,23 @@ use Magento\Framework\Controller\Result\JsonFactory;
 class Page extends Action
 {
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
     /** @var JsonFactory */
-    protected $resultJsonFactory;
+    private $resultJsonFactory;
 
     /** @var PageRecorder */
-    protected $pageRecorder;
+    private $pageRecorder;
 
     public function __construct(
-        Context $context,
         EventFactory $eventFactory,
         EventRepository $eventRepository,
         JsonFactory $resultJsonFactory,
-        PageRecorder $pageRecorder
+        PageRecorder $pageRecorder,
+        Context $context
     ) {
         $this->eventFactory = $eventFactory;
         $this->eventRepository = $eventRepository;
@@ -49,58 +49,20 @@ class Page extends Action
             return $result;
         }
 
-        $details = $this->getRequest()->getParam('details');
-        $products = $this->getRequest()->getParam('products');
-
         try {
-            if (empty($details)) {
-                throw new ValidationException("Parameter 'details' is missing or not array");
-            }
-
-            $details = base64_decode($details);
-            if (FALSE === $details) {
-                throw new ValidationException("Error decoding 'details' parameter");
-            }
-
-            $details = unserialize($details);
-            if (!is_array($details)) {
-                throw new ValidationException("Error extracting 'details' parameter");
-            }
-
-            $indexedProducts = [];
-            if (!empty($products)) {
-                if (!is_array($products)) {
-                    throw new ValidationException("Parameter 'products' is not array");
-                }
-
-                foreach ($products as $key => $value) {
-                    $value = base64_decode($value);
-                    if (false === $value) {
-                        throw new ValidationException("Error decoding product #{$key}");
-                    }
-                    $value = unserialize($value);
-                    if (!is_array($value)) {
-                        throw new ValidationException("Error extracting product #{$key}");
-                    }
-                    if (!isset($value['product_id'])) {
-                        throw new ValidationException("Invalid product #{$key}: product_id not found");
-                    }
-
-                    $indexedProducts[$value['product_id']] = $value;
-                }
-            }
+            $details = $this->getDetails();
+            $products = $this->getProducts();
 
             $event->collect()
                 ->setDetails($details);
 
             $this->pageRecorder
                 ->setEvent($event)
-                ->recordProducts($indexedProducts);
+                ->recordProducts($products);
 
         } catch (ValidationException $e) {
             /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-            $result->setHttpResponseCode(
-                \Magento\Framework\Webapi\Exception::HTTP_BAD_REQUEST)
+            $result->setHttpResponseCode(\Magento\Framework\Webapi\Exception::HTTP_BAD_REQUEST)
                 ->setData([
                     'status' => 'error',
                     'error' => $e->getMessage()
@@ -112,13 +74,70 @@ class Page extends Action
             $this->eventRepository->save($event);
         } catch (\Exception $e) {
             /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
-            $result->setHttpResponseCode(
-                \Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR)
-                ->setData('error',
-                    "Error saving event data");
+            $result->setHttpResponseCode(\Magento\Framework\Webapi\Exception::HTTP_INTERNAL_ERROR)
+                ->setData('error', "Error saving event data");
         }
 
         $result->setData(['status' => 'success']);
+
+        return $result;
+    }
+
+    /**
+     * @return array
+     * @throws ValidationException
+     */
+    private function getDetails()
+    {
+        $result = $this->getRequest()->getParam('details');
+
+        if (empty($result)) {
+            throw new ValidationException("Parameter 'details' is missing or not array");
+        }
+
+        $result = base64_decode($result);
+        if (false === $result) {
+            throw new ValidationException("Error decoding 'details' parameter");
+        }
+
+        $result = unserialize($result);
+        if (!is_array($result)) {
+            throw new ValidationException("Error extracting 'details' parameter");
+        }
+
+        return $result;
+    }
+
+    /**
+     * @return array
+     * @throws ValidationException
+     */
+    private function getProducts()
+    {
+        $products = $this->getRequest()->getParam('products');
+
+        $result = [];
+        if (!empty($products)) {
+            if (!is_array($products)) {
+                throw new ValidationException("Parameter 'products' is not array");
+            }
+
+            foreach ($products as $key => $value) {
+                $value = base64_decode($value);
+                if (false === $value) {
+                    throw new ValidationException("Error decoding product #{$key}");
+                }
+                $value = unserialize($value);
+                if (!is_array($value)) {
+                    throw new ValidationException("Error extracting product #{$key}");
+                }
+                if (!isset($value['product_id'])) {
+                    throw new ValidationException("Invalid product #{$key}: product_id not found");
+                }
+
+                $result[$value['product_id']] = $value;
+            }
+        }
 
         return $result;
     }

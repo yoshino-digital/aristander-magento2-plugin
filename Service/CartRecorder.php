@@ -3,28 +3,35 @@ namespace AristanderAi\Aai\Service;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
+use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
+use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Item;
 
 class CartRecorder
 {
-    protected $events = [];
+    private $events = [];
     
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
+
+    /** @var EventCollectionFactory */
+    private $eventCollectionFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     public function __construct(
         EventFactory $eventFactory,
+        EventCollectionFactory $eventCollectionFactory,
         EventRepository $eventRepository,
         Data $helperData
     ) {
         $this->eventFactory = $eventFactory;
+        $this->eventCollectionFactory = $eventCollectionFactory;
         $this->eventRepository = $eventRepository;
         $this->helperData = $helperData;
     }
@@ -37,9 +44,12 @@ class CartRecorder
      * @param string $action
      * @return self
      */
-    public function addItemChange(Item $item, string $action): self
+    public function addItemChange(Item $item, $action)
     {
-        $this->events[] = compact('item', 'action');
+        $this->events[] = [
+            'item' => $item,
+            'action' => $action,
+        ];
 
         return $this;
     }
@@ -51,8 +61,11 @@ class CartRecorder
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      * @return self
      */
-    public function saveEvents(): self
+    public function saveEvents()
     {
+        /** @var Collection $eventCollection */
+        $eventCollection = $this->eventCollectionFactory->create();
+
         foreach ($this->events as $eventData) {
             /** @var Item $item */
             $item = $eventData['item'];
@@ -81,8 +94,11 @@ class CartRecorder
                 'currency_code' => $item->getStore()->getCurrentCurrencyCode(),
             ]);
 
-            $this->eventRepository->save($event);
+            $eventCollection->addItem($event);
         }
+
+        // Save all events
+        $eventCollection->walk([$this->eventRepository, 'save']);
 
         return $this;
     }

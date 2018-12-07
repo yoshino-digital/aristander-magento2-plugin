@@ -8,10 +8,10 @@ use Magento\Config\Model\Config;
 class ConfigPlugin
 {
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var SendEvents */
-    protected $sendEvents;
+    private $sendEvents;
 
     public function __construct(
         Data $helperData,

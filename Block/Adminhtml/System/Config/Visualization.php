@@ -8,17 +8,14 @@ use Magento\Framework\Data\Form\Element\AbstractElement;
 
 class Visualization extends Field
 {
-    /** @var string Template path */
-    protected $_template = 'system/config/visualization.phtml';
-
     /** @var string Image URL template. Use {apiKey} placeholder to specify the API key position */
-    protected $imageUrlTemplate = 'https://api.aristander.ai/visualization/{apiKey}.png';
+    private $imageUrlTemplate = 'https://api.aristander.ai/visualization/{apiKey}.png';
 
     /** @var string Link URL template. Use {apiKey} placeholder to specify the API key position */
-    protected $linkUrlTemplate = 'https://aristander.ai/app';
+    private $linkUrlTemplate = 'https://aristander.ai/app';
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     public function __construct(
         Context $context,
@@ -38,15 +35,9 @@ class Visualization extends Field
 
     public function getTemplate()
     {
-        if (empty($this->getApiKey())) {
-            // Folder named same as main template
-            return pathinfo($this->_template, PATHINFO_DIRNAME)
-                . '/'
-                . pathinfo($this->_template, PATHINFO_FILENAME)
-                . '/no-api-key.phtml';
-        }
-
-        return parent::getTemplate();
+        return !empty($this->getApiKey())
+            ? 'system/config/visualization.phtml'
+            : 'system/config/visualization/no-api-key.phtml';
     }
 
     public function getApiKey()
@@ -64,7 +55,7 @@ class Visualization extends Field
         return $this->prepareUrl($this->linkUrlTemplate);
     }
 
-    protected function prepareUrl($url)
+    private function prepareUrl($url)
     {
         return str_replace('{apiKey}', $this->getApiKey(), $url);
     }

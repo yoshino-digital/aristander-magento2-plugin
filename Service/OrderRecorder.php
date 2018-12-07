@@ -11,16 +11,16 @@ use Magento\Sales\Model\Order;
 class OrderRecorder
 {
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
     /** @var QuoteRepository */
-    protected $quoteRepository;
+    private $quoteRepository;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     public function __construct(
         EventFactory $eventFactory,
@@ -72,7 +72,6 @@ class OrderRecorder
                 'price' => $this->helperData->formatPrice(
                     $item->getPrice()
                 ),
-                //TODO: remove if not used
                 'item_price' => $this->helperData->formatPrice(
                     $item->getPrice()
                 ),
@@ -129,7 +128,7 @@ class OrderRecorder
             $details['order_costs'][] = [
                 $code,
                 $this->helperData->formatPrice($value)
-            ];    
+            ];
         }
 
         $details['total'] = $this->helperData->formatPrice(

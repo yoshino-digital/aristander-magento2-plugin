@@ -3,10 +3,16 @@
 namespace AristanderAi\Aai\Block\PageView;
 
 use Magento\Framework\View\Element\Template;
+use Magento\Framework\View\Element\Template\Context;
 
 class Product extends Template
 {
-    protected $_template = 'AristanderAi_Aai::page-view/product.phtml';
+    public function __construct(
+        Context $context,
+        array $data = []
+    ) {
+        parent::__construct($context, $data);
+    }
 
     public function setDetails(array $value)
     {
@@ -16,5 +22,10 @@ class Product extends Template
     public function getDetails()
     {
         return $this->getData('details');
+    }
+
+    public function getTemplate()
+    {
+        return 'AristanderAi_Aai::page-view/product.phtml';
     }
 }

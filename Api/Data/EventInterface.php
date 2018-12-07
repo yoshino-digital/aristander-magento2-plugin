@@ -32,7 +32,7 @@ interface EventInterface
     /**
      * @return bool
      */
-    public function hasType(): bool;
+    public function hasType();
 
     /**
      * @return string|null;

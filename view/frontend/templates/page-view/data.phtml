@@ -1,7 +1,7 @@
 <?php
-/** @var $this \AristanderAi\Aai\Block\PageView\Data */
+/** @var $block \AristanderAi\Aai\Block\PageView\Data */
 
-$event = $this->getPageRecorder()->exportEvent();
+$event = $block->getPageRecorder()->exportEvent();
 if (!$event) {
     // Event record disabled
     return;
@@ -11,8 +11,8 @@ if (!$event) {
 {
     "*": {
         "AristanderAi_Aai/js/track-page": {
-            "url": "<?= $this->getTrackUrl() ?>",
-            "details": "<?= base64_encode(serialize($event->getDetails())) ?>"
+            "url": "<?= $block->escapeJs($this->getTrackUrl()) ?>",
+            "details": "<?= $block->escapeJs(base64_encode(serialize($event->getDetails()))) ?>"
         }
     }
 }

@@ -9,10 +9,10 @@ use Magento\Framework\Event\ObserverInterface;
 class CustomerLogin implements ObserverInterface
 {
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var LoginRecorder */
-    protected $loginRecorder;
+    private $loginRecorder;
 
     public function __construct(
         Data $helperData,
@@ -33,6 +33,6 @@ class CustomerLogin implements ObserverInterface
             return;
         }
 
-        $this->loginRecorder->record();
+        $this->loginRecorder->record($observer->getData('customer'));
     }
 }

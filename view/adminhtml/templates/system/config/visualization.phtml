@@ -1,18 +1,18 @@
 <?php
-/** @var $this \AristanderAi\Aai\Block\Adminhtml\System\Config\Visualization */
+/** @var $block \AristanderAi\Aai\Block\Adminhtml\System\Config\Visualization */
 ?>
 <a class="aai-visualization--image--link"
-   href="<?= $this->escapeHtml($this->getLinkUrl()) ?>"
+   href="<?= $this->escapeHtml($block->getLinkUrl()) ?>"
    target="_blank"
 >
     <img class="aai-visualization--image"
-         src="<?= $this->escapeHtml($this->getImageUrl()) ?>"
+         src="<?= $this->escapeHtml($block->getImageUrl()) ?>"
          alt="Visualization"
     >
 </a>
 <div class="aai-visualization--toolbar">
     <a class="action-primary"
-       href="<?= $this->escapeHtml($this->getLinkUrl()) ?>"
+       href="<?= $this->escapeHtml($block->getLinkUrl()) ?>"
        target="_blank"
     >View</a>
 </div>

@@ -7,10 +7,10 @@ use AristanderAi\Aai\Model\EventRepository;
 class UserCreationRecorder
 {
     /** @var EventFactory */
-    protected $eventFactory;
+    private $eventFactory;
 
     /** @var EventRepository */
-    protected $eventRepository;
+    private $eventRepository;
 
     public function __construct(
         EventFactory $eventFactory,
@@ -31,9 +31,9 @@ class UserCreationRecorder
         $event = $this->eventFactory->create(['type' => 'user_creation']);
         $event->collect();
 
-        $event->setDetails(array(
+        $event->setDetails([
             'user_id' => (string) $userId,
-        ));
+        ]);
 
         $this->eventRepository->save($event);
 

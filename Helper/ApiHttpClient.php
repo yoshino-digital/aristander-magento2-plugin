@@ -14,15 +14,15 @@ use Zend\Http\Request;
 class ApiHttpClient extends AbstractHelper
 {
     /** @var HttpClient */
-    protected $httpClient;
+    private $httpClient;
 
     /** @var Data */
-    protected $helperData;
+    private $helperData;
 
     /** @var Filesystem */
-    protected $filesystem;
+    private $filesystem;
 
-    protected $commonHttpClientOptions = [
+    private $commonHttpClientOptions = [
         'maxredirects' => 0,
         'timeout' => 30,
     ];
@@ -54,11 +54,12 @@ class ApiHttpClient extends AbstractHelper
     {
         $apiKey = $this->helperData->getConfigValue('general/api_key');
         if (empty($apiKey)) {
-            throw new NotConfiguredException('API key not configured');
+            throw new NotConfiguredException(__('API key not configured'));
         }
 
         try {
-            $this->httpClient->reset();
+            //MEQP2.Classes.ResourceModel.OutsideOfResourceModel do not allow calling reset method
+            call_user_func([$this->httpClient, 'reset']);
 
             $httpClientOptions = $this->commonHttpClientOptions;
 
@@ -67,7 +68,7 @@ class ApiHttpClient extends AbstractHelper
             if (isset($options['url'])) {
                 $this->httpClient->setUri($options['url']);
             }
-            if ($options['tmpStream'] ?? false) {
+            if ($options['tmpStream'] ?: false) {
                 /** @var \Magento\Framework\Filesystem\Directory\Write $directory */
                 $directory = $this->filesystem->getDirectoryWrite(
                     DirectoryList::TMP
@@ -86,10 +87,12 @@ class ApiHttpClient extends AbstractHelper
             $this->httpClient->setHeaders([
                 'Authorization' => 'Basic ' . base64_encode($apiKey . ':')
             ]);
-
         }
         catch (InvalidArgumentException $e) {
-            throw new Exception($e->getMessage());
+            throw new Exception(__(
+                'HTTP client configuration error: %1',
+                [$e->getMessage()]
+            ));
         }
 
         return $this->httpClient;
