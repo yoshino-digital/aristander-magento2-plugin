@@ -220,7 +220,7 @@ class PageRecorder
      *
      * @return bool
      */
-    public function isStarted(): bool
+    public function isStarted()
     {
         return $this->event? true : false;
     }
