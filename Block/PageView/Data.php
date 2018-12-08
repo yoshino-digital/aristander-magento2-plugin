@@ -33,4 +33,12 @@ class Data extends Template
     {
         return $this->getUrl('aristander-ai/track/page');
     }
+
+    public function getCacheKeyInfo()
+    {
+        return array_merge(
+            parent::getCacheKeyInfo(),
+            $this->pageRecorder->getEvent()->getDetails()
+        );
+    }
 }
