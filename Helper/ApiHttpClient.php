@@ -67,7 +67,7 @@ class ApiHttpClient extends AbstractHelper
             if (isset($options['url'])) {
                 $this->httpClient->setUri($options['url']);
             }
-            if ($options['tmpStream'] ?: false) {
+            if (isset($options['tmpStream']) && $options['tmpStream']) {
                 /** @var \Magento\Framework\Filesystem\Directory\Write $directory */
                 $directory = $this->filesystem->getDirectoryWrite(
                     DirectoryList::TMP

@@ -263,7 +263,7 @@ class Event extends AbstractModel implements EventInterface
             $this->getStoreId()
         );
 
-        return $result['sku'] ?: null;
+        return isset($result['sku']) ? $result['sku'] : null;
     }
 
     //

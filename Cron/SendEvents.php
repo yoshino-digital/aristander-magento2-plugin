@@ -283,7 +283,7 @@ class SendEvents
                 $event->setStatus('not-accepted');
                 $event->setLastError($notAcceptedEvents[$i]);
                 $event->setSyncedAt($syncDate);
-            } elseif ('' != $errorMsg) {
+            } elseif ('' == $errorMsg) {
                 $event->setStatus('success');
                 $event->setLastError(null);
                 $event->setSyncedAt($syncDate);
