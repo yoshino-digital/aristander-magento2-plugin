@@ -29,11 +29,17 @@ class Data extends Template
         return $this->pageRecorder;
     }
 
+    /**
+     * @return string
+     */
     public function getTrackUrl()
     {
         return $this->getUrl('aristander-ai/track/page');
     }
 
+    /**
+     * @return array
+     */
     public function getCacheKeyInfo()
     {
         return array_merge(

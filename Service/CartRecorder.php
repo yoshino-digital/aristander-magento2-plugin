@@ -4,9 +4,9 @@ namespace AristanderAi\Aai\Service;
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
-use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Item;
+use Magento\Framework\Data\CollectionFactory;
 
 class CartRecorder
 {
@@ -15,8 +15,8 @@ class CartRecorder
     /** @var EventFactory */
     private $eventFactory;
 
-    /** @var EventCollectionFactory */
-    private $eventCollectionFactory;
+    /** @var CollectionFactory */
+    private $collectionFactory;
 
     /** @var EventRepository */
     private $eventRepository;
@@ -26,12 +26,12 @@ class CartRecorder
 
     public function __construct(
         EventFactory $eventFactory,
-        EventCollectionFactory $eventCollectionFactory,
+        CollectionFactory $collectionFactory,
         EventRepository $eventRepository,
         Data $helperData
     ) {
         $this->eventFactory = $eventFactory;
-        $this->eventCollectionFactory = $eventCollectionFactory;
+        $this->collectionFactory = $collectionFactory;
         $this->eventRepository = $eventRepository;
         $this->helperData = $helperData;
     }
@@ -58,13 +58,12 @@ class CartRecorder
      * Generates and saves events for previously added changed cart items
      *
      * @throws \Exception
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
      * @return self
      */
     public function saveEvents()
     {
         /** @var Collection $eventCollection */
-        $eventCollection = $this->eventCollectionFactory->create();
+        $eventCollection = $this->collectionFactory->create();
 
         foreach ($this->events as $eventData) {
             /** @var Item $item */
