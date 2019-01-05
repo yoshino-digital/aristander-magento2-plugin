@@ -77,33 +77,7 @@ class UpgradeData implements UpgradeDataInterface
                 'visible' => false,
                 'is_html_allowed_on_front' => false,
                 'visible_on_front' => false,
-                
-                // TODO: remove if not needed
-                /*
-                'class' => '',
-                'user_defined' => true,
-                'default' => null,
-                'searchable' => false,
-                'filterable' => false,
-                'comparable' => false,
-                'used_in_product_listing' => false,
-                'unique' => false,
-                'apply_to' => array('simple', 'configurable', 'virtual', 'downloadable'),
-                'is_configurable' => false,
-                'is_used_for_promo_rules' => false,
-                */
             ]
         );
-
-        // TODO: remove if not needed
-        /*
-        // Hide from admin
-        $setup->updateAttribute(
-            'catalog_product',
-            'aai_backup_price',
-            'is_visible',
-            '0'
-        );
-        */
     }
 }
