@@ -20,13 +20,18 @@ class Data extends AbstractHelper
     /** @var PriceCurrencyInterface */
     private $priceCurrency;
 
+    /** @var \Magento\Framework\App\Config\Storage\WriterInterface */
+    private $configWriter;
+
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
-        PriceCurrencyInterface $priceCurrency
+        PriceCurrencyInterface $priceCurrency,
+        \Magento\Framework\App\Config\Storage\WriterInterface $configWriter
     ) {
         $this->moduleList = $moduleList;
         $this->priceCurrency = $priceCurrency;
+        $this->configWriter = $configWriter;
         
         parent::__construct($context);
     }
@@ -34,17 +39,32 @@ class Data extends AbstractHelper
     /**
      * Gets module config value
      *
-     * @param string $code
+     * @param string $path
      * @param int|null $storeId
      * @return string|null
      */
-    public function getConfigValue($code, $storeId = null)
+    public function getConfigValue($path, $storeId = null)
     {
         return $this->scopeConfig->getValue(
-            $this->configPath . '/' . $code,
+            $this->configPath . '/' . $path,
             ScopeInterface::SCOPE_STORE,
             $storeId
         );
+    }
+
+    /**
+     * Sets module config value
+     *
+     * @param string $path
+     * @param string|null $value
+     * @return self
+     */
+    public function setConfigValue($path, $value)
+    {
+        $this->configWriter->save($path, $value);
+        //TODO: check if cache clean is needed here
+
+        return $this;
     }
 
     /**
@@ -90,6 +110,19 @@ class Data extends AbstractHelper
     {
         return $this->isModuleEnabled()
             && $this->getConfigValue('price_import/enabled');
+    }
+
+    /**
+     * Sets price import enabled flag
+     *
+     * @param $value bool
+     * @return self;
+     */
+    public function setPriceImportEnabled($value)
+    {
+        $this->setConfigValue('price_import/enabled', $value? 1 : 0);
+
+        return $this;
     }
 
     /**
