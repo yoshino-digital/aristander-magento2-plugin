@@ -3,10 +3,8 @@ namespace AristanderAi\Aai\Block\Adminhtml\System\Config;
 
 use AristanderAi\Aai\Helper\Data;
 use Magento\Backend\Block\Template\Context;
-use Magento\Config\Block\System\Config\Form\Field;
-use Magento\Framework\Data\Form\Element\AbstractElement;
 
-class Visualization extends Field
+class Visualization extends FullRow
 {
     /** @var string Image URL template. Use {apiKey} placeholder to specify the API key position */
     private $imageUrlTemplate = 'https://api.aristander.ai/visualization/{apiKey}.png';
@@ -25,12 +23,6 @@ class Visualization extends Field
         $this->helperData = $helperData;
 
         parent::__construct($context, $data);
-    }
-
-    public function render(AbstractElement $element)
-    {
-        $columns = $this->getRequest()->getParam('website') || $this->getRequest()->getParam('store') ? 5 : 4;
-        return $this->_decorateRowHtml($element, "<td colspan='{$columns}'>" . $this->toHtml() . '</td>');
     }
 
     public function getTemplate()

@@ -4,7 +4,7 @@
         <tab id="aristander_ai_aai" translate="label" sortOrder="1000">
             <label>Aristander.ai</label>
         </tab>
-        <section id="aai" translate="label" sortOrder="100" showInDefault="1" showInWebsite="1" showInStore="1">
+        <section id="aai" translate="label" sortOrder="1" showInDefault="1" showInWebsite="1" showInStore="1">
             <class>separator-top</class>
             <label>Configuration</label>
             <tab>aristander_ai_aai</tab>
@@ -32,10 +32,13 @@
                     <label>Enable Price Import</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
+                <field id="restore_prices" translate="label" sortOrder="2" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <frontend_model>AristanderAi\Aai\Block\Adminhtml\System\Config\RestorePrices</frontend_model>
+                </field>
             </group>
         </section>
 
-        <section id="aai_dashboard" translate="label" sortOrder="100" showInDefault="1" showInWebsite="0" showInStore="0">
+        <section id="aai_dashboard" translate="label" sortOrder="2" showInDefault="1" showInWebsite="0" showInStore="0">
             <class>separator-top</class>
             <label>Dashboard</label>
             <tab>aristander_ai_aai</tab>

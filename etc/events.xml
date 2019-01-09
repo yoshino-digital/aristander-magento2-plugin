@@ -6,4 +6,7 @@
     <event name="customer_save_after">
         <observer name="aristander_ai_aai_customer_save_after" instance="AristanderAi\Aai\Observer\CustomerCreate" />
     </event>
+    <event name="catalog_product_save_before">
+        <observer name="aristander_ai_aai_catalog_product_save_before" instance="AristanderAi\Aai\Observer\ProductSave" />
+    </event>
 </config>

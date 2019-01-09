@@ -1,0 +1,28 @@
+<?php
+/** @var $block \AristanderAi\Aai\Block\Adminhtml\System\Config\RestorePrices */
+?>
+<div class="aai-restore-prices js-aai-restore-prices"
+     data-ajax-url="<?= $block->escapeUrl($block->getActionUrl('ajax')) ?>"
+     data-confirm="<?= $block->escapeHtml(__(
+         'Are you sure you want to restore all prices from backup?'
+     )) ?>"
+     data-msg-success="<?= $block->escapeHtml(__(
+         'All prices were restored from backup'
+     )) ?>"
+     data-msg-error="<?= $block->escapeHtml(__(
+         'Error restoring prices. Please contact Aristander.ai support.'
+     )) ?>"
+>
+    <button type="button"
+            class="aai-restore-prices--button js-aai-restore-prices--button"
+    ><?= $block->escapeHtml(__('Restore Original Prices')) ?></button>
+    <?php if ('progress' == $block->getStatus()): ?>
+        <p class="note js-aai-remove-on-start aai-restore-prices--notice--interrupted">
+            <?= nl2br($block->escapeHtml(__(<<<'TAG'
+Restoration process was interrupted. Please click Restore Original Prices to continue.
+Do not close this page until finished.
+TAG
+            ))) ?>
+        </p>
+    <?php endif ?>
+</div>
