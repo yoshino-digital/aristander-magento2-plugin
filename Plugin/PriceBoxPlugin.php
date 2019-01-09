@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Plugin;
 
 use Magento\Framework\Pricing\Render\PriceBox;
-use AristanderAi\Aai\Service\PageRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Page as PageRecorder;
 
 class PriceBoxPlugin
 {

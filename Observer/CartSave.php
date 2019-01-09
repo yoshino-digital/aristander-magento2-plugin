@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Service\CartRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Cart as CartRecorder;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 use Magento\Quote\Model\Quote\Item;

@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Service\LoginRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Login as LoginRecorder;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 

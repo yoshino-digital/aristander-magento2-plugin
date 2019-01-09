@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Service\PageRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Page as PageRecorder;
 use Magento\Framework\App\Request\Http;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;

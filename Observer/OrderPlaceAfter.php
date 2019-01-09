@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Service\OrderRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Order as OrderRecorder;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;
 

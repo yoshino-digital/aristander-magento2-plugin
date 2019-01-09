@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Service;
+namespace AristanderAi\Aai\Service\EventRecorder;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
@@ -8,7 +8,7 @@ use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Item;
 use Magento\Framework\Data\CollectionFactory;
 
-class CartRecorder
+class Cart
 {
     private $events = [];
     

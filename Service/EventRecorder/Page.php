@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Service;
+namespace AristanderAi\Aai\Service\EventRecorder;
 
 use AristanderAi\Aai\Block\PageView\Product as ProductBlock;
 use AristanderAi\Aai\Block\PageView\ProductFactory;
@@ -14,7 +14,7 @@ use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Checkout\Model\Session;
 
-class PageRecorder
+class Page
 {
     /**
      * @var array stores IDs of recorded products to avoid double processing

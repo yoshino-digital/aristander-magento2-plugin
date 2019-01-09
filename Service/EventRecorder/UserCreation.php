@@ -1,10 +1,10 @@
 <?php
-namespace AristanderAi\Aai\Service;
+namespace AristanderAi\Aai\Service\EventRecorder;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 
-class UserCreationRecorder
+class UserCreation
 {
     /** @var EventFactory */
     private $eventFactory;

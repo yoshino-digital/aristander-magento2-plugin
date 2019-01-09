@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Observer;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Service\UserCreationRecorder;
+use AristanderAi\Aai\Service\EventRecorder\UserCreation as UserCreationRecorder;
 use Magento\Customer\Model\Customer;
 use Magento\Framework\Event\Observer;
 use Magento\Framework\Event\ObserverInterface;

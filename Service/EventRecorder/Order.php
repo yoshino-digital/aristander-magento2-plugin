@@ -1,14 +1,14 @@
 <?php
-namespace AristanderAi\Aai\Service;
+namespace AristanderAi\Aai\Service\EventRecorder;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Helper\Data;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\QuoteRepository;
-use Magento\Sales\Model\Order;
+use Magento\Sales\Model\Order as OrderModel;
 
-class OrderRecorder
+class Order
 {
     /** @var EventFactory */
     private $eventFactory;
@@ -35,12 +35,12 @@ class OrderRecorder
     }
 
     /**
-     * @param Order $order
+     * @param OrderModel $order
      * @return self
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function record(Order $order)
+    public function record(OrderModel $order)
     {
         $event = $this->eventFactory->create(['type' => 'order']);
         $event->collect();

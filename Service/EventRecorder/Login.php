@@ -1,11 +1,11 @@
 <?php
-namespace AristanderAi\Aai\Service;
+namespace AristanderAi\Aai\Service\EventRecorder;
 
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 use Magento\Customer\Model\Customer;
 
-class LoginRecorder
+class Login
 {
     /** @var EventFactory */
     private $eventFactory;

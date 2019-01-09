@@ -5,7 +5,7 @@ namespace AristanderAi\Aai\Controller\Track;
 use AristanderAi\Aai\Controller\Track\Page\ValidationException;
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
-use AristanderAi\Aai\Service\PageRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Page as PageRecorder;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
 use Magento\Framework\Controller\Result\JsonFactory;

@@ -2,7 +2,7 @@
 
 namespace AristanderAi\Aai\Block\PageView;
 
-use AristanderAi\Aai\Service\PageRecorder;
+use AristanderAi\Aai\Service\EventRecorder\Page as PageRecorder;
 use Magento\Framework\View\Element\Template;
 use Magento\Framework\View\Element\Template\Context;
 
