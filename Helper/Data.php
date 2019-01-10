@@ -1,6 +1,8 @@
 <?php
 namespace AristanderAi\Aai\Helper;
 
+use Magento\Framework\App\Cache\TypeListInterface;
+use Magento\Framework\App\Config\Storage\WriterInterface;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
 use Magento\Framework\Module\ModuleListInterface;
@@ -20,18 +22,23 @@ class Data extends AbstractHelper
     /** @var PriceCurrencyInterface */
     private $priceCurrency;
 
-    /** @var \Magento\Framework\App\Config\Storage\WriterInterface */
+    /** @var WriterInterface */
     private $configWriter;
+
+    /** @var TypeListInterface $cacheTypeList */
+    private $cacheTypeList;
 
     public function __construct(
         Context $context,
         ModuleListInterface $moduleList,
         PriceCurrencyInterface $priceCurrency,
-        \Magento\Framework\App\Config\Storage\WriterInterface $configWriter
+        WriterInterface $configWriter,
+        TypeListInterface $cacheTypeList
     ) {
         $this->moduleList = $moduleList;
         $this->priceCurrency = $priceCurrency;
         $this->configWriter = $configWriter;
+        $this->cacheTypeList = $cacheTypeList;
         
         parent::__construct($context);
     }
@@ -61,8 +68,13 @@ class Data extends AbstractHelper
      */
     public function setConfigValue($path, $value)
     {
-        $this->configWriter->save($path, $value);
-        //TODO: check if cache clean is needed here
+        $this->configWriter->save(
+            $this->configPath . '/' . $path,
+            $value
+        );
+        $this->cacheTypeList->cleanType(
+            \Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER
+        );
 
         return $this;
     }

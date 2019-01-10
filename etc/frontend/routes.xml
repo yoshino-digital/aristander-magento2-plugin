@@ -3,7 +3,7 @@
     <!--Use router 'standard' for frontend route-->
     <router id="standard">
         <!--Define a custom route with id and frontName-->
-        <route frontName="aristander-ai" id="AristanderAi">
+        <route frontName="aristander-ai" id="aristander_ai">
             <!--The module which this route match to-->
             <module name="AristanderAi_Aai"/>
         </route>

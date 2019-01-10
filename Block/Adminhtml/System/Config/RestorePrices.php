@@ -12,6 +12,7 @@ class RestorePrices extends FullRow
     public function __construct(
         Context $context,
         Data $helperData,
+        \Magento\Framework\UrlInterface $urlBuilder,
         array $data = []
     ) {
         $this->helperData = $helperData;
@@ -25,9 +26,9 @@ class RestorePrices extends FullRow
      * @param string $action
      * @return string
      */
-    public function getActionUrl($action = '')
+    public function getActionUrl($action = 'index')
     {
-        //TODO: implementation
+        return $this->getUrl("aristander-ai/restorePrices/{$action}");
     }
 
     /**

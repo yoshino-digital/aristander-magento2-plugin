@@ -5,8 +5,10 @@ use AristanderAi\Aai\Cron\ImportPrices\Exception;
 use AristanderAi\Aai\Helper\ApiHttpClient;
 use AristanderAi\Aai\Helper\ApiHttpClient\NotConfiguredException;
 use AristanderAi\Aai\Helper\Data;
+use AristanderAi\Aai\Observer\ProductSave as ProductSaveObserver;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\Framework\Data\CollectionFactory as ProductCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
 use /** @noinspection PhpUndefinedClassInspection */
@@ -41,18 +43,28 @@ class ImportPrices
     /** @var Data */
     private $helperData;
 
+    /** @var ProductCollectionFactory */
+    private $productCollectionFactory;
+
+    /** @var ProductSaveObserver */
+    private $productSaveObserver;
+
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */LoggerInterface $logger,
         ApiHttpClient $helperApiHttpClient,
         ProductRepository $productRepository,
         ResourceConnection $resource,
-        Data $helperData
+        Data $helperData,
+        ProductCollectionFactory $productCollectionFactory,
+        ProductSaveObserver $productSaveObserver
     ) {
         $this->logger = $logger;
         $this->helperApiHttpClient = $helperApiHttpClient;
         $this->productRepository = $productRepository;
         $this->resource = $resource;
         $this->helperData = $helperData;
+        $this->productCollectionFactory = $productCollectionFactory;
+        $this->productSaveObserver = $productSaveObserver;
     }
 
     /**
@@ -96,69 +108,85 @@ class ImportPrices
 
     /**
      * @param resource $stream
-     * @throws Exception
      * @throws \Exception
      */
     private function process($stream)
     {
-        $connection = $this->resource->getConnection();
+        $productCollection = $this->productCollectionFactory->create();
 
-        $connection->beginTransaction();
-        try {
-            rewind($stream);
+        rewind($stream);
 
-            $columns = null;
-            $columnIndexes = null;
-            $lineNo = 0;
-            while (!feof($stream)) {
-                $lineNo++;
-                $row = $this->readRow($stream);
-                if (null === $row) {
-                    continue;
-                }
-
-                if (null === $columnIndexes) {
-                    // Parse header
-                    $columns = $row;
-                    try {
-                        $columnIndexes = $this->mapColumns($columns);
-                    } catch (Exception $e) {
-                        throw new Exception(__(
-                            'Error at CSV line %1: %2',
-                            [$lineNo, $e->getMessage()]
-                        ));
-                    }
-
-                    continue;
-                }
-
-                if (count($row) != count($columns)) {
-                    throw new Exception(__(
-                        'Error at CSV line %1: Invalid file format - expect %2 columns, found %3',
-                        [$lineNo, count($columns), count($row)]
-                    ));
-                }
-
-                $data = [];
-                foreach ($this->columnNames as $columnName) {
-                    $data[$columnName] = $row[$columnIndexes[$columnName]];
-                }
-
-                try {
-                    $this->processProduct($data);
-                } catch (NoSuchEntityException $e) {
-                    $this->logger->warning(__(
-                        'Error at CSV line %1: Product SKU \%2\' not found',
-                        [$lineNo, $data['product_id']]
-                    ));
-                }
+        $columns = null;
+        $columnIndexes = null;
+        $lineNo = 0;
+        while (!feof($stream)) {
+            $lineNo++;
+            $row = $this->readRow($stream);
+            if (null === $row) {
+                continue;
             }
-        } catch (\Exception $e) {
-            $connection->rollBack();
-            throw $e;
+
+            if (null === $columnIndexes) {
+                // Parse header
+                $columns = $row;
+                try {
+                    $columnIndexes = $this->mapColumns($columns);
+                } catch (Exception $e) {
+                    throw new Exception(__(
+                        'Error at CSV line %1: %2',
+                        [$lineNo, $e->getMessage()]
+                    ));
+                }
+
+                continue;
+            }
+
+            if (count($row) != count($columns)) {
+                throw new Exception(__(
+                    'Error at CSV line %1: Invalid file format - expect %2 columns, found %3',
+                    [$lineNo, count($columns), count($row)]
+                ));
+            }
+
+            $data = [];
+            foreach ($this->columnNames as $columnName) {
+                $data[$columnName] = $row[$columnIndexes[$columnName]];
+            }
+
+            try {
+                $product = $this->processProduct($data);
+            } catch (NoSuchEntityException $e) {
+                $this->logger->warning(__(
+                    'Error at CSV line %1: Product SKU \%2\' not found',
+                    [$lineNo, $data['product_id']]
+                ));
+                continue;
+            }
+
+            if ($product) {
+                $productCollection->addItem($product);
+            }
         }
 
-        $connection->commit();
+        if ($productCollection->count()) {
+            $connection = $this->resource->getConnection();
+            $connection->beginTransaction();
+            try {
+                $this->productSaveObserver->enabled = false;
+                $productCollection->walk([$this->productRepository, 'save']);
+                $this->productSaveObserver->enabled = true;
+
+                $this->helperData->setConfigValue(
+                    'price_backup/status',
+                    'present'
+                );
+            } catch (Exception $e) {
+                $connection->rollBack();
+                throw $e;
+            }
+
+            $connection->commit();
+        }
     }
 
     private function readRow($stream)
@@ -209,24 +237,29 @@ class ImportPrices
 
     /**
      * @param array $data
+     * @return null
      * @throws NoSuchEntityException
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Exception\StateException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function processProduct(array $data)
     {
         /** @var Product $product */
         $product = $this->productRepository->get($data['product_id']);
 
-        if ($product->getPrice() == $data['price']) {
+        $price = $product->getData('price');
+        if ($price == $data['price']) {
             // Price is the same
-            return;
+            return null;
         }
 
-        $product->setPrice($data['price']);
+        // Backup original price
+        if (null === $product->getData('aai_backup_price')) {
+            $product->setData('aai_backup_price', $price);
+        }
 
-        $this->productRepository->save($product);
+        $product->setData('price', $data['price']);
+
+        return $product;
     }
 
     /**
