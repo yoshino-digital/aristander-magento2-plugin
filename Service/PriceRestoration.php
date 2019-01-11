@@ -59,7 +59,6 @@ class PriceRestoration
                 ->setData('aai_backup_price', null);
         }
 
-        //TODO: test observer disabling
         $this->productSaveObserver->enabled = false;
         $products->walk('save');
         $this->productSaveObserver->enabled = true;
