@@ -28,7 +28,10 @@ class RestorePrices extends FullRow
      */
     public function getActionUrl($action = 'index')
     {
-        return $this->getUrl("aristander-ai/restorePrices/{$action}");
+        return $this->getUrl(
+            "aristander-ai/restorePrices/{$action}",
+            ['form_key' => $this->getFormKey()]
+        );
     }
 
     /**

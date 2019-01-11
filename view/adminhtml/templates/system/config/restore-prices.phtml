@@ -1,18 +1,27 @@
 <?php
 /** @var $block \AristanderAi\Aai\Block\Adminhtml\System\Config\RestorePrices */
 ?>
-<div class="aai-restore-prices js-aai-restore-prices"
-     data-ajax-url="<?= $block->escapeUrl($block->getActionUrl()) ?>"
-     data-confirm="<?= $block->escapeHtml(__(
-         'Are you sure you want to restore all prices from backup?'
-     )) ?>"
-     data-msg-success="<?= $block->escapeHtml(__(
-         'All prices were restored from backup'
-     )) ?>"
-     data-msg-error="<?= $block->escapeHtml(__(
-         'Error restoring prices. Please contact Aristander.ai support.'
-     )) ?>"
->
+<script type="text/x-magento-init">
+    {
+        "*": {
+            "AristanderAi_Aai/js/restore-prices": {
+                "ajax-url": "<?= $block->escapeJs($block->getActionUrl()) ?>",
+                "messages": {
+                    "confirm": "<?= $block->escapeJs(__(
+                        'Are you sure you want to restore all prices from backup?'
+                    )) ?>",
+                    "success": "<?= $block->escapeJs(__(
+                        'All prices were restored from backup'
+                    )) ?>",
+                    "error": "<?= $block->escapeJs(__(
+                        'Error restoring prices. Please contact Aristander.ai support.'
+                    )) ?>"
+                }
+            }
+        }
+    }
+</script>
+<div class="aai-restore-prices js-aai-restore-prices">
     <button type="button"
             class="aai-restore-prices--button js-aai-restore-prices--button"
     ><?= $block->escapeHtml(__('Restore Original Prices')) ?></button>
