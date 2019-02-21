@@ -56,7 +56,7 @@ class HttpClientCreator extends AbstractHelper
     {
         $apiKey = $this->helperData->getConfigValue('general/api_key');
         if (empty($apiKey)) {
-            throw new NotConfiguredException(__('API key not configured'));
+            throw new NotConfiguredException(__('Poll API key not configured'));
         }
 
         try {

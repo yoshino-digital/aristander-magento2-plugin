@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Plugin;
 
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Cron\SendEvents;
+use AristanderAi\Aai\Service\PollApi\SendEvents;
 use Magento\Config\Model\Config;
 
 class ConfigPlugin

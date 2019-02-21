@@ -35,17 +35,6 @@ class RestorePrices extends FullRow
     }
 
     /**
-     * Gets price backup status
-     * @return string|null
-     */
-    public function getStatus()
-    {
-        return $this->helperData->getConfigValue(
-            'price_backup/status'
-        );
-    }
-
-    /**
      * @inheritdoc Dynamically returns no-backup template for empty status
      * @return string
      */
