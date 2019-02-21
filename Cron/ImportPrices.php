@@ -2,8 +2,7 @@
 namespace AristanderAi\Aai\Cron;
 
 use AristanderAi\Aai\Cron\ImportPrices\Exception;
-use AristanderAi\Aai\Helper\ApiHttpClient;
-use AristanderAi\Aai\Helper\ApiHttpClient\NotConfiguredException;
+use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Observer\ProductSave as ProductSaveObserver;
 use Magento\Catalog\Model\Product;
@@ -31,8 +30,8 @@ class ImportPrices
     /** @var \Zend\Http\Client */
     private $httpClient;
 
-    /** @var ApiHttpClient */
-    private $helperApiHttpClient;
+    /** @var HttpClientCreator */
+    private $httpClientCreator;
 
     /** @var ProductRepository */
     private $productRepository;
@@ -50,8 +49,9 @@ class ImportPrices
     private $productSaveObserver;
 
     public function __construct(
-        /** @noinspection PhpUndefinedClassInspection */LoggerInterface $logger,
-        ApiHttpClient $helperApiHttpClient,
+        /** @noinspection PhpUndefinedClassInspection */
+        LoggerInterface $logger,
+        HttpClientCreator $httpClientCreator,
         ProductRepository $productRepository,
         ResourceConnection $resource,
         Data $helperData,
@@ -59,7 +59,7 @@ class ImportPrices
         ProductSaveObserver $productSaveObserver
     ) {
         $this->logger = $logger;
-        $this->helperApiHttpClient = $helperApiHttpClient;
+        $this->httpClientCreator = $httpClientCreator;
         $this->productRepository = $productRepository;
         $this->resource = $resource;
         $this->helperData = $helperData;
@@ -82,7 +82,7 @@ class ImportPrices
 
         try {
             $this->initHttpClient();
-        } catch (NotConfiguredException $e) {
+        } catch (HttpClientCreator\NotConfiguredException $e) {
             $this->logger->debug('Aristander.ai price import is not configured');
             return;
         }
@@ -265,13 +265,14 @@ class ImportPrices
     /**
      * Initializes HTTP client object
      *
-     * @throws ApiHttpClient\NotConfiguredException
-     * @throws ApiHttpClient\Exception
+     * @throws HttpClientCreator\NotConfiguredException
+     * @throws HttpClientCreator\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\ValidatorException
      */
     private function initHttpClient()
     {
-        $this->httpClient = $this->helperApiHttpClient->init([
+        $this->httpClient = $this->httpClientCreator->create([
             'url' => $this->helperData->getConfigValue('api/import_prices')
                 ?: $this->endPointUrl,
             'tmpStream' => true,

@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Helper\ApiHttpClient;
+namespace AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 
 use Magento\Framework\Exception\LocalizedException;
 

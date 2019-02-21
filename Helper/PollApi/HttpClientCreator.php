@@ -1,17 +1,18 @@
 <?php
-namespace AristanderAi\Aai\Helper;
+namespace AristanderAi\Aai\Helper\PollApi;
 
-use AristanderAi\Aai\Helper\ApiHttpClient\NotConfiguredException;
+use AristanderAi\Aai\Helper\Data;
+use AristanderAi\Aai\Helper\PollApi\HttpClientCreator\Exception;
+use AristanderAi\Aai\Helper\PollApi\HttpClientCreator\NotConfiguredException;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
-use AristanderAi\Aai\Helper\ApiHttpClient\Exception;
 use Magento\Framework\Filesystem;
 use Magento\Framework\App\Filesystem\DirectoryList;
 use Zend\Http\Client as HttpClient;
 use Zend\Http\Exception\InvalidArgumentException;
 use Zend\Http\Request;
 
-class ApiHttpClient extends AbstractHelper
+class HttpClientCreator extends AbstractHelper
 {
     /** @var HttpClient */
     private $httpClient;
@@ -49,8 +50,9 @@ class ApiHttpClient extends AbstractHelper
      * @throws NotConfiguredException
      * @throws Exception
      * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\ValidatorException
      */
-    public function init(array $options = [])
+    public function create(array $options = [])
     {
         $apiKey = $this->helperData->getConfigValue('general/api_key');
         if (empty($apiKey)) {
@@ -83,6 +85,7 @@ class ApiHttpClient extends AbstractHelper
             $this->httpClient->setMethod(Request::METHOD_POST);
             $this->httpClient->setOptions($httpClientOptions);
             $this->httpClient->setEncType('application/json');
+            /** @noinspection MissedFieldInspection */
             $this->httpClient->setHeaders([
                 'Authorization' => 'Basic ' . base64_encode($apiKey . ':')
             ]);

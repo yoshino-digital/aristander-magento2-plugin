@@ -2,8 +2,7 @@
 namespace AristanderAi\Aai\Cron;
 
 use AristanderAi\Aai\Cron\SendEvents\Exception;
-use AristanderAi\Aai\Helper\ApiHttpClient;
-use AristanderAi\Aai\Helper\ApiHttpClient\NotConfiguredException;
+use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventRepository;
@@ -37,8 +36,8 @@ class SendEvents
     /** @var EventResource */
     private $eventResource;
 
-    /** @var ApiHttpClient */
-    private $helperApiHttpClient;
+    /** @var HttpClientCreator */
+    private $httpClientCreator;
 
     /** @var DateTime */
     private $date;
@@ -54,7 +53,7 @@ class SendEvents
         EventCollectionFactory $eventCollectionFactory,
         EventRepository $eventRepository,
         EventResource $eventResource,
-        ApiHttpClient $helperApiHttpClient,
+        HttpClientCreator $httpClientCreator,
         DateTime $date,
         Data $helperData,
         ResourceConnection $resource
@@ -63,14 +62,14 @@ class SendEvents
         $this->eventCollectionFactory = $eventCollectionFactory;
         $this->eventRepository = $eventRepository;
         $this->eventResource = $eventResource;
-        $this->helperApiHttpClient = $helperApiHttpClient;
+        $this->httpClientCreator = $httpClientCreator;
         $this->date = $date;
         $this->helperData = $helperData;
         $this->resource = $resource;
     }
 
     /**
-     * @throws ApiHttpClient\Exception
+     * @throws HttpClientCreator\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws Exception
@@ -81,7 +80,7 @@ class SendEvents
 
         try {
             $this->initHttpClient();
-        } catch (NotConfiguredException $e) {
+        } catch (HttpClientCreator\NotConfiguredException $e) {
             $this->logger->debug('Aristander.ai event sending is not configured');
             return;
         }
@@ -312,13 +311,14 @@ class SendEvents
     /**
      * Initializes HTTP client object
      *
-     * @throws ApiHttpClient\NotConfiguredException
-     * @throws ApiHttpClient\Exception
+     * @throws HttpClientCreator\NotConfiguredException
+     * @throws HttpClientCreator\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws \Magento\Framework\Exception\ValidatorException
      */
     private function initHttpClient()
     {
-        $this->httpClient = $this->helperApiHttpClient->init([
+        $this->httpClient = $this->httpClientCreator->create([
             'url' => $this->helperData->getConfigValue('api/send_events')
                 ?: $this->endPointUrl,
         ]);
