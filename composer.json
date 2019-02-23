@@ -6,6 +6,7 @@
   "require": {
     "php": ">=5.5.0",
     "ext-json": "*",
+    "ext-openssl": "*",
     "magento/framework": ">=100.0.0",
     "magento/module-catalog": ">=100.0.2",
     "magento/module-customer": ">=100.0.2",
