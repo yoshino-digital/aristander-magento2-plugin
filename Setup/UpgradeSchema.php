@@ -1,6 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Setup;
 
+use Magento\Framework\App\Cache\Manager;
 use Magento\Framework\DB\Adapter\AdapterInterface;
 use Magento\Framework\DB\Ddl\Table;
 use Magento\Framework\Setup\UpgradeSchemaInterface;
@@ -9,6 +10,15 @@ use Magento\Framework\Setup\ModuleContextInterface;
 
 class UpgradeSchema implements UpgradeSchemaInterface
 {
+    /** @var Manager */
+    private $cacheManager;
+
+    public function __construct(
+        Manager $cacheManager
+    ) {
+        $this->cacheManager = $cacheManager;
+    }
+
     /**
      * {@inheritdoc}
      * @throws \Zend_Db_Exception
@@ -24,7 +34,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
         $setup->startSetup();
 
-        //handle all possible upgrade versions
         $db = $setup->getConnection();
 
         if (version_compare($context->getVersion(), '0.1', '<')) {
@@ -54,6 +63,46 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'comment' => 'Event registration UNIX timestamp'
                 ]
             );
+
+            // Clean DDL cache
+            $this->cacheManager->clean([
+                \Magento\Framework\DB\Adapter\DdlCache::TYPE_IDENTIFIER
+            ]);
+        }
+
+        if (version_compare($context->getVersion(), '1.2', '<')) {
+            // Upgrade to v1.2
+
+            $table = $setup->getTable('aai_event');
+
+            // Add price_mode field
+            $db->addColumn(
+                $table,
+                'price_mode',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'length' => 255,
+                    'nullable' => false,
+                    'comment' => 'Price mode'
+                ]
+            );
+
+            // Add pricelist_source field
+            $db->addColumn(
+                $table,
+                'pricelist_source',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'length' => 255,
+                    'nullable' => false,
+                    'comment' => 'Price-list source'
+                ]
+            );
+
+            // Clean DDL cache
+            $this->cacheManager->clean([
+                \Magento\Framework\DB\Adapter\DdlCache::TYPE_IDENTIFIER
+            ]);
         }
 
         $setup->endSetup();
@@ -168,6 +217,20 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     255,
                     ['nullable' => false],
                     'Version of the module at the time of event registration'
+                )
+                ->addColumn(
+                    'price_mode',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Price mode'
+                )
+                ->addColumn(
+                    'pricelist_source',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Price-list source'
                 )
                 ->addColumn(
                     'timestamp',
