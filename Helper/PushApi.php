@@ -16,13 +16,12 @@ class PushApi extends AbstractHelper
 
     /** @var FlagResource */
     private $flagResource;
-
+    
     public function __construct(
         Context $context,
         Data $helperData, 
         AccessToken $accessTokenFlag,
-        FlagResource $flagResource,
-        \Magento\Store\Model\StoreManagerInterface $storeManager
+        FlagResource $flagResource
     ) {
         $this->helperData = $helperData;
         $this->accessTokenFlag = $accessTokenFlag;

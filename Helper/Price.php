@@ -1,6 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Helper;
 
+use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Customer\Model\Session;
@@ -25,17 +26,19 @@ class Price extends AbstractHelper
      * performance optimized access
      */
     private $alternativePriceAttributeCode = 'aai_alternative_price';
-
+    
     private $customerGroupTaxClassId = 3; // Retail customer
 
+    /** @var int|null */
     private $customerGroupId;
 
+    /** @var bool|null */
     private $alternativePriceFlag;
 
     /** @var Data */
     private $helperData;
 
-    /** @var \Jaybizzle\CrawlerDetect */
+    /** @var CrawlerDetect */
     private $crawlerDetect;
 
     /** @var \Magento\Framework\Stdlib\CookieManagerInterface */
@@ -59,7 +62,7 @@ class Price extends AbstractHelper
     public function __construct(
         Context $context,
         Data $helperData,
-        // \Jaybizzle\CrawlerDetect $crawlerDetect,
+        CrawlerDetect $crawlerDetect,
         CookieManagerInterface $cookie,
         GroupInterfaceFactory $groupFactory,
         GroupRepositoryInterface $groupRepository,
@@ -68,7 +71,7 @@ class Price extends AbstractHelper
         ProductResource $productResource
     ) {
         $this->helperData = $helperData;
-        //$this->crawlerDetect = $crawlerDetect;
+        $this->crawlerDetect = $crawlerDetect;
         $this->cookie = $cookie;
         $this->groupFactory = $groupFactory;
         $this->groupRepository = $groupRepository;
@@ -82,6 +85,9 @@ class Price extends AbstractHelper
     /**
      * @param Product $product
      * @return self
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
     public function initProductPrice(Product $product)
     {
@@ -147,6 +153,12 @@ class Price extends AbstractHelper
         return $this;
     }
 
+    /**
+     * @return bool
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
     public function getAlternativePriceFlag()
     {
         if (is_null($this->alternativePriceFlag)) {
@@ -364,15 +376,17 @@ class Price extends AbstractHelper
     // Private methods
     //
 
+    /**
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
     private function initAlternativePriceFlag()
     {
-        //TODO: detect crawler
-        /*
         if ($this->crawlerDetect->isCrawler()) {
             $this->alternativePriceFlag = false;
             return;
         }
-        */
 
         switch ($this->getMode()) {
             case 'alternative':

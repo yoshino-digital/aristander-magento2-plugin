@@ -13,7 +13,8 @@
     "magento/module-quote": ">=100.0.0",
     "magento/module-sales": ">=100.0.0",
     "magento/module-store": ">=100.0.2",
-    "zendframework/zend-http": "*"
+    "zendframework/zend-http": "*",
+    "jaybizzle/crawler-detect" :"1.*"
   },
   "authors": [
     {
