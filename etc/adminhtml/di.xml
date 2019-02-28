@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
-    <type name="\Magento\Framework\Pricing\Render\PriceBox">
-        <plugin name="aristander_ai_aai_price_box_plugin" type="\AristanderAi\Aai\Plugin\PriceBoxPlugin" />
-    </type>
     <type name="\Magento\Config\Model\Config">
         <plugin name="aristander_ai_aai_config_plugin" type="\AristanderAi\Aai\Plugin\ConfigPlugin" />
+    </type>
+    <type name="\Magento\Customer\Controller\Adminhtml\Group\NewAction">
+        <plugin name="aristander_ai_aai_limit_edit_plugin" type="\AristanderAi\Aai\Plugin\Adminhtml\Customer\Group\NewActionPlugin" />
     </type>
 </config>
