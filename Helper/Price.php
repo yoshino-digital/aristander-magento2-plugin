@@ -134,11 +134,22 @@ class Price extends AbstractHelper
         return $this;
     }
 
+    /**
+     * Gets active price mode
+     *
+     * @return string
+     */
     public function getMode()
     {
         return $this->helperData->getConfigValue('price_import/price_mode');
     }
 
+    /**
+     * Sets active price mode
+     *
+     * @param $value
+     * @return self
+     */
     public function setMode($value)
     {
         if ($value == $this->getMode()) {

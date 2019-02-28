@@ -15,4 +15,7 @@
     <event name="customer_login">
         <observer name="aristander_ai_aai_customer_login" instance="AristanderAi\Aai\Observer\CustomerLogin" />
     </event>
+    <event name="customer_session_init">
+        <observer name="aristander_ai_aai_customer_session_init" instance="AristanderAi\Aai\Observer\CustomerSessionInit" />
+    </event>
 </config>
