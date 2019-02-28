@@ -18,4 +18,10 @@
     <event name="customer_session_init">
         <observer name="aristander_ai_aai_customer_session_init" instance="AristanderAi\Aai\Observer\CustomerSessionInit" />
     </event>
+    <event name="catalog_product_get_final_price">
+        <observer name="aristander_ai_aai_catalog_product_get_final_price" instance="AristanderAi\Aai\Observer\PriceInit" />
+    </event>
+    <event name="catalog_product_collection_load_after">
+        <observer name="aristander_ai_aai_catalog_product_collection_load_after" instance="AristanderAi\Aai\Observer\PriceInit" />
+    </event>
 </config>
