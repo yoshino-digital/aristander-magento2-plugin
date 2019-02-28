@@ -2,7 +2,8 @@
 namespace AristanderAi\Aai\Plugin\Adminhtml\Customer\Group;
 
 use AristanderAi\Aai\Helper\Price;
-use \Magento\Customer\Controller\Adminhtml\Group\NewAction;
+use Magento\Backend\Model\View\Result\Page;
+use Magento\Customer\Controller\Adminhtml\Group\NewAction;
 
 
 class NewActionPlugin
@@ -17,18 +18,23 @@ class NewActionPlugin
     }
 
     /**
+     * Removes delete button and sets code field to read-only for alternative
+     * price customer group
+     *
      * @param NewAction $subject
-     * @param $result
-     * @return \Magento\Backend\Model\View\Result\Page
+     * @param Page $result
+     * @return Page
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
-    public function afterExecute(NewAction $subject, $result)
-    {
+    public function afterExecute(
+        NewAction $subject,
+        Page $result
+    ) {
 
-        /** @var \Magento\Backend\Model\View\Result\Page $result */
+        /** @var Page $result */
 
         if ($this->helperPrice->getCustomerGroupId()
             != $subject->getRequest()->getParam('id')
