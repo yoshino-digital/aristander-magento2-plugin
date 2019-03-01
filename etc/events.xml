@@ -9,4 +9,7 @@
     <event name="catalog_product_save_before">
         <observer name="aristander_ai_aai_catalog_product_save_before" instance="AristanderAi\Aai\Observer\ProductSave" />
     </event>
+    <event name="prepare_catalog_product_price_index_table">
+        <observer name="aristander_ai_aai_prepare_catalog_product_price_index_table" instance="AristanderAi\Aai\Observer\PreparePriceIndex" />
+    </event>
 </config>

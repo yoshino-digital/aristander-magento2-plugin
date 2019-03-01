@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <type name="Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\BasePriceModifier">
+        <arguments>
+            <argument name="priceModifiers" xsi:type="array">
+                <item name="arsitander_ai_aai_alternative_price_modifier" xsi:type="object">AristanderAi\Aai\Model\ResourceModel\Price\AlternativePriceModifier</item>
+            </argument>
+        </arguments>
+    </type>
+</config>
