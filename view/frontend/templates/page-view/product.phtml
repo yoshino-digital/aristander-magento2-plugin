@@ -1,4 +1,4 @@
 <?php
 /** @var $block \AristanderAi\Aai\Block\PageView\Product */
 ?>
-<script type="text/x-aristander_ai_aai-page-view-product"><?= $block->escapeJs(base64_encode(serialize($block->getDetails()))) ?></script>
+<script type="text/x-aristander_ai_aai-page-view-product"><?= base64_encode(serialize($block->getDetails())) ?></script>
