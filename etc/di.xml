@@ -7,4 +7,7 @@
             </argument>
         </arguments>
     </type>
+    <type name="\Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\DefaultPrice">
+        <plugin name="aristander_ai_aai_alternative_price" type="\AristanderAi\Aai\Plugin\AlternativePricePlugin" />
+    </type>
 </config>
