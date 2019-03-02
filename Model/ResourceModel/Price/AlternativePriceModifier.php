@@ -34,6 +34,10 @@ class AlternativePriceModifier implements PriceModifierInterface
      * @param IndexTableStructure $priceTable
      * @param array $entityIds
      * @return void
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function modifyPrice(IndexTableStructure $priceTable, array $entityIds = []) : void
     {
