@@ -4,10 +4,13 @@ namespace AristanderAi\Aai\Service\PollApi;
 use AristanderAi\Aai\Cron\ImportPrices\Exception;
 use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
-use AristanderAi\Aai\Observer\ProductSave as ProductSaveObserver;
+use AristanderAi\Aai\Helper\Price;
+use Magento\Catalog\Api\Data\ProductInterface;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ProductRepository;
+use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Data\CollectionFactory as ProductCollectionFactory;
+use Magento\Framework\Data\Collection as ProductCollection;
 use Magento\Framework\App\ResourceConnection;
 use Magento\Framework\Exception\NoSuchEntityException;
 use /** @noinspection PhpUndefinedClassInspection */
@@ -21,6 +24,16 @@ class ImportPrices
     private $columnNames = [
         'product_id',
         'price',
+    ];
+
+    private $unsupportedProductTypes = [
+        'bundle',
+        'grouped',
+    ];
+
+    private $priceModeMap = [
+        'aristander' => 'alternative',
+        'default' => 'original',
     ];
 
     /** @noinspection PhpUndefinedClassInspection */
@@ -39,14 +52,20 @@ class ImportPrices
     /** @var ResourceConnection */
     private $resource;
 
+    /** @var Configurable  */
+    private $modelProductConfigurable;
+
     /** @var Data */
     private $helperData;
+
+    /** @var Price */
+    private $helperPrice;
 
     /** @var ProductCollectionFactory */
     private $productCollectionFactory;
 
-    /** @var ProductSaveObserver */
-    private $productSaveObserver;
+    /** @var ProductCollection */
+    private $productCollection;
 
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */
@@ -54,17 +73,19 @@ class ImportPrices
         HttpClientCreator $httpClientCreator,
         ProductRepository $productRepository,
         ResourceConnection $resource,
+        Configurable $modelProductConfigurable,
         Data $helperData,
-        ProductCollectionFactory $productCollectionFactory,
-        ProductSaveObserver $productSaveObserver
+        Price $helperPrice,
+        ProductCollectionFactory $productCollectionFactory
     ) {
         $this->logger = $logger;
         $this->httpClientCreator = $httpClientCreator;
         $this->productRepository = $productRepository;
         $this->resource = $resource;
+        $this->modelProductConfigurable = $modelProductConfigurable;
         $this->helperData = $helperData;
+        $this->helperPrice = $helperPrice;
         $this->productCollectionFactory = $productCollectionFactory;
-        $this->productSaveObserver = $productSaveObserver;
     }
 
     /**
@@ -97,8 +118,18 @@ class ImportPrices
         }
 
         $this->process($response->getStream());
-        
-        //TODO: set price mode
+
+        // Set price mode
+        $modeHeader = $response->getHeaders()->get('price_mode');
+        if ($modeHeader) {
+            $mode = $modeHeader->getFieldValue();
+            if (isset($this->priceModeMap[$mode])) {
+                $mode = $this->priceModeMap[$mode];
+            }
+
+            $this->logger->debug("Setting price mode to '{$mode}'");
+            $this->helperPrice->setMode($mode);
+        }
 
         $this->logger->debug('Finished Aristander.ai price import');
     }
@@ -109,7 +140,7 @@ class ImportPrices
      */
     private function process($stream)
     {
-        $productCollection = $this->productCollectionFactory->create();
+        $this->productCollection = $this->productCollectionFactory->create();
 
         rewind($stream);
 
@@ -151,32 +182,56 @@ class ImportPrices
             }
 
             try {
-                $product = $this->processProduct($data);
+                /** @var Product $product */
+                $product = $this->productRepository->get($data['product_id']);
             } catch (NoSuchEntityException $e) {
                 $this->logger->warning(__(
-                    'Error at line %1: Product SKU \%2\' not found',
+                    "Error at line %1: Product SKU '%2' not found",
                     [$lineNo, $data['product_id']]
                 ));
                 continue;
             }
 
-            if ($product) {
-                $productCollection->addItem($product);
+            // Ignore bundles & grouped
+            if (in_array($product->getTypeId(), $this->unsupportedProductTypes)) {
+                $this->logger->warning(__(
+                    "Warning at line %1: Product #%2 '%3' type is '%4'. This type is not supported.",
+                    [
+                        $lineNo,
+                        $product->getId(),
+                        $product->getId(),
+                        $product->getTypeId(),
+                    ]
+                ));
+                continue;
+            }
+
+            $price = $data['price'];
+            $this->applyPriceToProduct($price, $product);
+
+            if ('configurable' == $product->getTypeId()) {
+                $childProducts = $this->modelProductConfigurable
+                    ->getUsedProducts($product);
+                foreach ($childProducts as $childProduct) {
+                    $this->applyPriceToProduct($price, $childProduct);
+                }
             }
         }
 
-        if ($productCollection->count()) {
+        if ($this->productCollection->count()) {
             $connection = $this->resource->getConnection();
             $connection->beginTransaction();
             try {
-                $productCollection->walk([$this->productRepository, 'save']);
-            } catch (Exception $e) {
+                $this->productCollection->walk([$this->productRepository, 'save']);
+            } catch (\Exception $e) {
                 $connection->rollBack();
                 throw $e;
             }
 
             $connection->commit();
         }
+
+        $this->productCollection = null;
     }
 
     private function readRow($stream)
@@ -226,27 +281,50 @@ class ImportPrices
     }
 
     /**
-     * @param array $data
-     * @return null
-     * @throws NoSuchEntityException
+     * @param float $price
+     * @param ProductInterface $product
      * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Exception
      */
-    private function processProduct(array $data)
+    private function applyPriceToProduct($price, ProductInterface $product)
     {
         /** @var Product $product */
-        $product = $this->productRepository->get($data['product_id']);
-        
-        //TODO: ignore bundles and grouped
+        $oldPrice = $this->formatPrice(
+            $this->helperPrice->getProductAlternativePrice($product)
+        );
+        $price = $this->formatPrice($price);
 
-        $price = $product->getData('price');
-        if ($price == $data['price']) {
-            // Price is the same
+        if ($oldPrice !== $price) {
+            if (null !== $price) {
+                $this->logger->debug("Changing alternative price for product #{$product->getId()} '{$product->getSku()}' from {$oldPrice} to {$price}");
+            } else {
+                $this->logger->debug("Removing alternative price for product #{$product->getId()} '{$product->getSku()}'");
+            }
+
+            $this->helperPrice->setProductAlternativePrice($product, $price);
+            $this->productCollection->addItem($product);
+        }
+    }
+
+    /**
+     * Converts price value to string and normalizes it for comparison
+     *
+     * @param float|string|null $price
+     * @return string|null
+     */
+    private function formatPrice($price)
+    {
+        if (null === $price || '' === $price) {
             return null;
         }
 
-        $product->setData('price', $data['price']);
+        $price = (string) $price;
+        if (false !== strpos($price, '.')) {
+            $price = rtrim($price, '0');
+            $price = rtrim($price, '.');
+        }
 
-        return $product;
+        return $price;
     }
 
     /**
