@@ -411,11 +411,20 @@ class Price extends AbstractHelper
                     $version = rand(0, 1);
                 }
 
+                $cookiePath = parse_url(
+                    $this->_getUrl(''),
+                    PHP_URL_PATH
+                );
+                if ('' == $cookiePath) {
+                    $cookiePath = '/';
+                }
+
                 $this->cookie->setPublicCookie(
                     $this->cookieName,
                     $version,
                     new PublicCookieMetadata([
-                        PublicCookieMetadata::KEY_DURATION => $this->cookieLifetime,    
+                        PublicCookieMetadata::KEY_DURATION => $this->cookieLifetime,
+                        PublicCookieMetadata::KEY_PATH => $cookiePath,
                     ])
                 );
 
