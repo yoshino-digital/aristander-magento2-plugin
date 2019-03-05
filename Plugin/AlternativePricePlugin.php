@@ -40,6 +40,16 @@ class AlternativePricePlugin
         $this->connectionName = $connectionName;
     }
 
+    /**
+     * @param DefaultPrice $subject
+     * @param callable $proceed
+     * @param array|int $entityIds
+     * @return DefaultPrice
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
+     */
     public function aroundReindexEntity(
         DefaultPrice $subject,
         callable $proceed,

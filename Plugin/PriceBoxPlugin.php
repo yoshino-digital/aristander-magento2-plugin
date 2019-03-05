@@ -14,6 +14,11 @@ class PriceBoxPlugin
         $this->pageRecorder = $pageRecorder;
     }
 
+    /**
+     * @param PriceBox $subject
+     * @param string $result
+     * @return string
+     */
     public function afterRenderAmount(PriceBox $subject, $result)
     {
         if (!$this->pageRecorder->isStarted()) {

@@ -21,6 +21,11 @@ class ConfigPlugin
         $this->sendEvents = $sendEvents;
     }
 
+    /**
+     * @param Config $subject
+     * @param callable $proceed
+     * @return Config
+     */
     public function aroundSave(Config $subject, callable $proceed)
     {
         if ($this->helperData->getConfigPath() != $subject->getData('section')) {
@@ -33,13 +38,13 @@ class ConfigPlugin
             return $proceed();
         }
 
-        $returnValue = $proceed();
+        $result = $proceed();
 
         if ('' != $subject->getConfigDataValue('aai/general/api_key')) {
             // Change to non-empty
             $this->sendEvents->ping();
         }
 
-        return $returnValue;
+        return $result;
     }
 }
