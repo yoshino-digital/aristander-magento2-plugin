@@ -3,6 +3,7 @@ namespace AristanderAi\Aai\Model;
 
 use AristanderAi\Aai\Api\Data\EventInterface;
 use AristanderAi\Aai\Helper\Data;
+use AristanderAi\Aai\Helper\Price;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Customer\Model\Session;
 use Magento\Framework\Data\Collection\AbstractDb;
@@ -33,6 +34,9 @@ class Event extends AbstractModel implements EventInterface
     /** @var Data */
     private $helperData;
 
+    /** @var Price */
+    private $helperPrice;
+
     /** @var ProductResource */
     private $productResource;
 
@@ -59,6 +63,7 @@ class Event extends AbstractModel implements EventInterface
         Session $session,
         StoreManagerInterface $storeManager,
         Data $helperData,
+        Price $helperPrice,
         ProductResource $productResource,
         Header $httpHeader,
         AbstractResource $resource = null,
@@ -68,6 +73,7 @@ class Event extends AbstractModel implements EventInterface
         $this->session = $session;
         $this->storeManager = $storeManager;
         $this->helperData = $helperData;
+        $this->helperPrice = $helperPrice;
         $this->productResource = $productResource;
         $this->httpHeader = $httpHeader;
 
@@ -101,6 +107,9 @@ class Event extends AbstractModel implements EventInterface
      * Collects basic event data
      *
      * @return $this
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
     public function collect()
     {
@@ -142,6 +151,22 @@ class Event extends AbstractModel implements EventInterface
             $this->setData($key, $this->getStore()->getId());
         }
 
+        // Price mode and source
+        $key = 'price_mode';
+        if (!$this->hasData($key)) {
+            $this->setData($key, $this->helperPrice->getMode());
+        }
+
+        $key = 'pricelist_source';
+        if (!$this->hasData($key)) {
+            $this->setData(
+                $key,
+                $this->helperPrice->getAlternativePriceFlag()
+                    ? 'alternative'
+                    : 'original'
+            );
+        }
+
         return $this;
     }
 
@@ -180,6 +205,8 @@ class Event extends AbstractModel implements EventInterface
             'details',
             'timestamp',
             'version',
+            'price_mode',
+            'pricelist_source',
         ];
     }
 
@@ -280,7 +307,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string $value
-     * @return self
+     * @return $this
      */
     public function setType($value)
     {
@@ -322,7 +349,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setSessionId($value)
     {
@@ -339,7 +366,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setUserAgent($value)
     {
@@ -356,7 +383,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setUserId($value)
     {
@@ -373,7 +400,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setStoreId($value)
     {
@@ -390,7 +417,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setStoreGroupId($value)
     {
@@ -407,7 +434,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setWebsiteId($value)
     {
@@ -424,7 +451,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param array $value
-     * @return self
+     * @return $this
      */
     public function setDetails($value)
     {
@@ -441,11 +468,47 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string $value
-     * @return self
+     * @return $this
      */
     public function setVersion($value)
     {
         return $this->setData(self::VERSION, $value);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPriceMode()
+    {
+        return $this->_getData(self::PRICE_MODE);
+    }
+
+    /**
+     * @param string $value
+     * @return self
+     */
+    public function setPriceMode($value)
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->setData(self::PRICE_MODE, $value);
+    }
+
+    /**
+     * @return string
+     */
+    public function getPricelistSource()
+    {
+        return $this->_getData(self::PRICELIST_SOURCE);
+    }
+
+    /**
+     * @param string $value
+     * @return self
+     */
+    public function setPricelistSource($value)
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->setData(self::PRICELIST_SOURCE, $value);
     }
 
     /**
@@ -458,7 +521,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setTimestamp($value = null)
     {
@@ -487,7 +550,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setSyncedAt($value)
     {
@@ -504,7 +567,7 @@ class Event extends AbstractModel implements EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setLastError($value)
     {

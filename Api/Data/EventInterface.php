@@ -12,10 +12,12 @@ interface EventInterface
     const STORE_GROUP_ID = 'store_group_id';
     const WEBSITE_ID = 'website_id';
     const DETAILS = 'details';
-    const VERSION = 'version';
-    const TIMESTAMP = 'timestamp';
     const CREATED_AT = 'created_at';
     const SYNCED_AT = 'synced_at';
+    const VERSION = 'version';
+    const PRICE_MODE = 'price_mode';
+    const PRICELIST_SOURCE = 'pricelist_source';
+    const TIMESTAMP = 'timestamp';
     const LAST_ERROR = 'last_error';
 
     /**
@@ -25,7 +27,7 @@ interface EventInterface
 
     /**
      * @param string $value
-     * @return self
+     * @return $this
      */
     public function setType($value);
 
@@ -52,7 +54,7 @@ interface EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setSessionId($value);
 
@@ -63,7 +65,7 @@ interface EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setUserAgent($value);
 
@@ -74,7 +76,7 @@ interface EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setUserId($value);
 
@@ -85,7 +87,7 @@ interface EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setStoreId($value);
 
@@ -96,7 +98,7 @@ interface EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setStoreGroupId($value);
 
@@ -107,7 +109,7 @@ interface EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setWebsiteId($value);
 
@@ -118,7 +120,7 @@ interface EventInterface
 
     /**
      * @param array $value
-     * @return self
+     * @return $this
      */
     public function setDetails($value);
 
@@ -129,9 +131,31 @@ interface EventInterface
 
     /**
      * @param string $value
-     * @return self
+     * @return $this
      */
     public function setVersion($value);
+
+    /**
+     * @return string
+     */
+    public function getPriceMode();
+
+    /**
+     * @param string $value
+     * @return $this
+     */
+    public function setPriceMode($value);
+
+    /**
+     * @return string
+     */
+    public function getPricelistSource();
+
+    /**
+     * @param string $value
+     * @return $this
+     */
+    public function setPricelistSource($value);
 
     /**
      * @return int
@@ -140,7 +164,7 @@ interface EventInterface
 
     /**
      * @param int|null $value
-     * @return self
+     * @return $this
      */
     public function setTimestamp($value = null);
 
@@ -156,7 +180,7 @@ interface EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setSyncedAt($value);
 
@@ -167,7 +191,7 @@ interface EventInterface
 
     /**
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setLastError($value);
 }
