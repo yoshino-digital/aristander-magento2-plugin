@@ -24,7 +24,7 @@ class Collection extends AbstractCollection
      * Adds status filter
      *
      * @param string|array $status
-     * @return self
+     * @return $this
      */
     public function setStatusFilter($status)
     {
@@ -40,7 +40,7 @@ class Collection extends AbstractCollection
     /**
      * Unserialize details field
      *
-     * @return self
+     * @return $this
      */
     protected function _afterLoad()
     {

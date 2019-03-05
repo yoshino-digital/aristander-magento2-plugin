@@ -28,7 +28,7 @@ class Event extends AbstractDb
 
     /**
      * @throws \Magento\Framework\Exception\LocalizedException if not properly configured
-     * @return self
+     * @return $this
      */
     public function cleanUp()
     {

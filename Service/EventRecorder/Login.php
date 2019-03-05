@@ -25,7 +25,7 @@ class Login
 
     /**
      * @param Customer $customer
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
     public function record(Customer $customer)

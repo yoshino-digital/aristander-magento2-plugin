@@ -56,7 +56,7 @@ class Page
     /**
      * Starts tracking page view event
      *
-     * @return self
+     * @return $this
      */
     public function start()
     {
@@ -124,7 +124,7 @@ class Page
 
     /**
      * @param array $products
-     * @return self
+     * @return $this
      */
     public function recordProducts(array $products)
     {
@@ -235,7 +235,7 @@ class Page
 
     /**
      * @param Event $event
-     * @return self
+     * @return $this
      */
     public function setEvent(Event $event)
     {

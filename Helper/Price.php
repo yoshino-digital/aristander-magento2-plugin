@@ -84,7 +84,7 @@ class Price extends AbstractHelper
 
     /**
      * @param Product $product
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
      * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
@@ -148,7 +148,7 @@ class Price extends AbstractHelper
      * Sets active price mode
      *
      * @param $value
-     * @return self
+     * @return $this
      */
     public function setMode($value)
     {
@@ -271,7 +271,7 @@ class Price extends AbstractHelper
      *
      * @param Product $product
      * @param $value
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function setProductAlternativePrice(Product $product, $value) 
@@ -307,7 +307,7 @@ class Price extends AbstractHelper
      * Removes alternative price for a product
      *
      * @param Product $product
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function unsetProductAlternativePrice(Product $product) {
@@ -330,7 +330,7 @@ class Price extends AbstractHelper
      * customer group price
      *
      * @param Product $product
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function handleProductAlternativePriceUpdate(Product $product)

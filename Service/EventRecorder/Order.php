@@ -36,7 +36,7 @@ class Order
 
     /**
      * @param OrderModel $order
-     * @return self
+     * @return $this
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */

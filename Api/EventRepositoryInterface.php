@@ -17,7 +17,7 @@ interface EventRepositoryInterface
      * Saves event model
      *
      * @param EventInterface $event
-     * @return self
+     * @return $this
      */
     public function save(EventInterface $event);
 }

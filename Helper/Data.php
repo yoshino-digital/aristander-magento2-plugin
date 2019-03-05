@@ -64,7 +64,7 @@ class Data extends AbstractHelper
      *
      * @param string $path
      * @param string|null $value
-     * @return self
+     * @return $this
      */
     public function setConfigValue($path, $value)
     {
@@ -128,7 +128,7 @@ class Data extends AbstractHelper
      * Sets price import enabled flag
      *
      * @param $value bool
-     * @return self;
+     * @return $this;
      */
     public function setPriceImportEnabled($value)
     {

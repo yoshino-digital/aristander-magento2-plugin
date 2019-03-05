@@ -119,7 +119,7 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * @return self
+     * @return $this
      * @throws \Magento\Framework\Exception\InputException
      * @throws \Magento\Framework\Exception\LocalizedException
      * @throws \Magento\Framework\Exception\NoSuchEntityException
@@ -133,7 +133,7 @@ class UpgradeData implements UpgradeDataInterface
     }
 
     /**
-     * @return self
+     * @return $this
      */
     public function addAlternativePriceProductAttribute()
     {

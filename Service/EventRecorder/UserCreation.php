@@ -22,7 +22,7 @@ class UserCreation
 
     /**
      * @param int $userId
-     * @return self
+     * @return $this
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */

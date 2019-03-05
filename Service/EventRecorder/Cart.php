@@ -42,7 +42,7 @@ class Cart
      *
      * @param Item $item
      * @param string $action
-     * @return self
+     * @return $this
      */
     public function addItemChange(Item $item, $action)
     {
@@ -58,7 +58,7 @@ class Cart
      * Generates and saves events for previously added changed cart items
      *
      * @throws \Exception
-     * @return self
+     * @return $this
      */
     public function saveEvents()
     {
