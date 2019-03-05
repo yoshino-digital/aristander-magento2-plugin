@@ -8,6 +8,11 @@
         </arguments>
     </type>
     <type name="\Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\DefaultPrice">
-        <plugin name="aristander_ai_aai_alternative_price" type="\AristanderAi\Aai\Plugin\AlternativePricePlugin" />
+        <plugin name="aristander_ai_aai_alternative_price"
+                type="AristanderAi\Aai\Plugin\AlternativePricePlugin" />
+    </type>
+    <type name="Magento\Framework\App\PageCache\Identifier">
+        <plugin name="aristander_ai_aai_cache_identifier"
+                type="AristanderAi\Aai\Plugin\CacheIdentifierPlugin" />
     </type>
 </config>
