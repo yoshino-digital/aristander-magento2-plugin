@@ -31,16 +31,19 @@ class Uninstall implements UninstallInterface
     ) {
         $setup->startSetup();
 
-        $setup->getConnection()->dropTable($setup->getTable('aai_event'));
+        $connection = $setup->getConnection();
 
-        $setup->endSetup();
+        $connection->dropTable($setup->getTable('aai_event'));
+        $connection->dropTable($setup->getTable('aai_shipping_cost'));
 
         /** @var \Magento\Eav\Setup\EavSetup $eavSetup */
         $eavSetup = $this->eavSetupFactory->create();
 
         $eavSetup->removeAttribute(
             \Magento\Catalog\Model\Product::ENTITY,
-            'aai_backup_price'
+            'aai_alternative_price'
         );
+
+        $setup->endSetup();
     }
 }
