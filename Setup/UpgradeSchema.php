@@ -138,7 +138,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
             return;
         }
 
-        $table = $setup->getConnection()->newTable(
+        $connection = $setup->getConnection();
+
+        $table = $connection->newTable(
             $setup->getTable($tableName)
         )
             ->addColumn(
@@ -278,10 +280,10 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'Last Sync Error Message'
             )
             ->setComment('Event Log and Sync Queue');
-        $setup->getConnection()->createTable($table);
+        $connection->createTable($table);
 
         $idxFields = 'status';
-        $setup->getConnection()->addIndex(
+        $connection->addIndex(
             $setup->getTable($tableName),
             $setup->getIdxName(
                 $setup->getTable($tableName),
@@ -304,9 +306,23 @@ class UpgradeSchema implements UpgradeSchemaInterface
             return;
         }
 
-        $table = $setup->getConnection()->newTable(
+        $connection = $setup->getConnection();
+
+        $table = $connection->newTable(
             $setup->getTable($tableName)
         )
+            ->addColumn(
+                'id',
+                Table::TYPE_INTEGER,
+                null,
+                [
+                    'identity' => true,
+                    'nullable' => false,
+                    'primary'  => true,
+                    'unsigned' => true,
+                ],
+                'Event ID'
+            )
             ->addColumn(
                 'quote_id',
                 Table::TYPE_INTEGER,
@@ -314,7 +330,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 [
                     'identity' => false,
                     'nullable' => false,
-                    'primary'  => true,
                     'unsigned' => true,
                 ],
                 'Quote ID'
@@ -323,10 +338,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'code',
                 Table::TYPE_TEXT,
                 255,
-                [
-                    'primary'  => true,
-                    'nullable' => false
-                ],
+                ['nullable' => false],
                 'Shipping Method Code'
             )
             ->addColumn(
@@ -340,9 +352,9 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 'Shipping Cost'
             )
             ->setComment('Shipping Cost Storage');
-        $setup->getConnection()->createTable($table);
+        $connection->createTable($table);
 
-        $setup->getConnection()->addForeignKey(
+        $connection->addForeignKey(
             $setup->getFkName(
                 $tableName,
                 'quote_id',
@@ -354,6 +366,18 @@ class UpgradeSchema implements UpgradeSchemaInterface
             $setup->getTable('quote'),
             'entity_id',
             Table::ACTION_CASCADE
+        );
+
+        $idxFields = ['quote_id', 'code'];
+        $connection->addIndex(
+            $setup->getTable($tableName),
+            $setup->getIdxName(
+                $setup->getTable($tableName),
+                $idxFields,
+                AdapterInterface::INDEX_TYPE_UNIQUE
+            ),
+            $idxFields,
+            AdapterInterface::INDEX_TYPE_UNIQUE
         );
     }
 }
