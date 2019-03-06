@@ -2,6 +2,7 @@
 namespace AristanderAi\Aai\Api;
 
 use AristanderAi\Aai\Api\Data\EventInterface;
+use Magento\Framework\Exception\NoSuchEntityException;
 
 interface EventRepositoryInterface
 {
@@ -9,15 +10,16 @@ interface EventRepositoryInterface
      * Gets event by ID
      *
      * @param int $id
-     * @return EventInterface|null
+     * @return EventInterface
+     * @throws NoSuchEntityException
      */
     public function get($id);
 
     /**
      * Saves event model
      *
-     * @param EventInterface $event
+     * @param EventInterface $model
      * @return $this
      */
-    public function save(EventInterface $event);
+    public function save(EventInterface $model);
 }

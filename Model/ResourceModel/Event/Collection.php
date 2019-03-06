@@ -2,7 +2,7 @@
 namespace AristanderAi\Aai\Model\ResourceModel\Event;
 
 use AristanderAi\Aai\Model\Event;
-use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
+use AristanderAi\Aai\Model\ResourceModel\Event as Resource;
 use Magento\Framework\Model\ResourceModel\Db\Collection\AbstractCollection;
 
 class Collection extends AbstractCollection
@@ -16,7 +16,7 @@ class Collection extends AbstractCollection
     {
         $this->_init(
             Event::class,
-            EventResource::class
+            Resource::class
         );
     }
 
