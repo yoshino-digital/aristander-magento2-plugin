@@ -99,8 +99,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
                 ]
             );
 
-            $this->createShippingCostTable($setup);
-
             // Clean DDL cache
             $this->cacheManager->clean([
                 \Magento\Framework\DB\Adapter\DdlCache::TYPE_IDENTIFIER
@@ -121,239 +119,163 @@ class UpgradeSchema implements UpgradeSchemaInterface
     ) {
         $setup->startSetup();
 
-        $this->createEventTable($setup);
-        $this->createShippingCostTable($setup);
-
-        $setup->endSetup();
-    }
-
-    /**
-     * @param SchemaSetupInterface $setup
-     * @throws \Zend_Db_Exception
-     */
-    private function createEventTable(SchemaSetupInterface $setup)
-    {
         $tableName = 'aai_event';
-        if ($setup->tableExists($tableName)) {
-            return;
-        }
+        if (!$setup->tableExists($tableName)) {
+            $table = $setup->getConnection()->newTable(
+                $setup->getTable($tableName)
+            )
+                ->addColumn(
+                    'id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'identity' => true,
+                        'nullable' => false,
+                        'primary'  => true,
+                        'unsigned' => true,
+                    ],
+                    'Event ID'
+                )
+                ->addColumn(
+                    'type',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Event Type'
+                )
+                ->addColumn(
+                    'status',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false, 'default' => 'pending'],
+                    'Event Sync Status'
+                )
+                ->addColumn(
+                    'session_id',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Visitor Session Key'
+                )
+                ->addColumn(
+                    'user_agent',
+                    Table::TYPE_TEXT,
+                    '64K',
+                    ['nullable' => false],
+                    'Visitor User Agent String'
+                )
+                ->addColumn(
+                    'user_id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'nullable' => true,
+                        'unsigned' => true,
+                    ],
+                    'Customer ID'
+                )
+                ->addColumn(
+                    'store_id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'nullable' => true,
+                        'unsigned' => true,
+                    ],
+                    'Store View ID'
+                )
+                ->addColumn(
+                    'store_group_id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'nullable' => true,
+                        'unsigned' => true,
+                    ],
+                    'Store ID'
+                )
+                ->addColumn(
+                    'website_id',
+                    Table::TYPE_INTEGER,
+                    null,
+                    [
+                        'nullable' => true,
+                        'unsigned' => true,
+                    ],
+                    'Website ID'
+                )
+                ->addColumn(
+                    'details',
+                    Table::TYPE_TEXT,
+                    '1M',
+                    ['nullable' => true],
+                    'Event Details'
+                )
+                ->addColumn(
+                    'version',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Version of the module at the time of event registration'
+                )
+                ->addColumn(
+                    'price_mode',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Price mode'
+                )
+                ->addColumn(
+                    'pricelist_source',
+                    Table::TYPE_TEXT,
+                    255,
+                    ['nullable' => false],
+                    'Price-list source'
+                )
+                ->addColumn(
+                    'timestamp',
+                    Table::TYPE_INTEGER,
+                    null,
+                    ['nullable' => false],
+                    'vent registration UNIX timestamp'
+                )
+                ->addColumn(
+                    'created_at',
+                    Table::TYPE_TIMESTAMP,
+                    null,
+                    ['nullable' => false, 'default' => Table::TIMESTAMP_INIT],
+                    'Created At'
+                )
+                ->addColumn(
+                    'synced_at',
+                    Table::TYPE_TIMESTAMP,
+                    null,
+                    ['nullable' => true],
+                    'Synchronization Date'
+                )
+                ->addColumn(
+                    'last_error',
+                    Table::TYPE_TEXT,
+                    '64K',
+                    ['nullable' => true],
+                    'Last Sync Error Message'
+                )
+                ->setComment('Event Log and Sync Queue');
+            $setup->getConnection()->createTable($table);
 
-        $table = $setup->getConnection()->newTable(
-            $setup->getTable($tableName)
-        )
-            ->addColumn(
-                'id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'identity' => true,
-                    'nullable' => false,
-                    'primary'  => true,
-                    'unsigned' => true,
-                ],
-                'Event ID'
-            )
-            ->addColumn(
-                'type',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false],
-                'Event Type'
-            )
-            ->addColumn(
-                'status',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false, 'default' => 'pending'],
-                'Event Sync Status'
-            )
-            ->addColumn(
-                'session_id',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false],
-                'Visitor Session Key'
-            )
-            ->addColumn(
-                'user_agent',
-                Table::TYPE_TEXT,
-                '64K',
-                ['nullable' => false],
-                'Visitor User Agent String'
-            )
-            ->addColumn(
-                'user_id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'nullable' => true,
-                    'unsigned' => true,
-                ],
-                'Customer ID'
-            )
-            ->addColumn(
-                'store_id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'nullable' => true,
-                    'unsigned' => true,
-                ],
-                'Store View ID'
-            )
-            ->addColumn(
-                'store_group_id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'nullable' => true,
-                    'unsigned' => true,
-                ],
-                'Store ID'
-            )
-            ->addColumn(
-                'website_id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'nullable' => true,
-                    'unsigned' => true,
-                ],
-                'Website ID'
-            )
-            ->addColumn(
-                'details',
-                Table::TYPE_TEXT,
-                '1M',
-                ['nullable' => true],
-                'Event Details'
-            )
-            ->addColumn(
-                'version',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false],
-                'Version of the module at the time of event registration'
-            )
-            ->addColumn(
-                'price_mode',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false],
-                'Price mode'
-            )
-            ->addColumn(
-                'pricelist_source',
-                Table::TYPE_TEXT,
-                255,
-                ['nullable' => false],
-                'Price-list source'
-            )
-            ->addColumn(
-                'timestamp',
-                Table::TYPE_INTEGER,
-                null,
-                ['nullable' => false],
-                'vent registration UNIX timestamp'
-            )
-            ->addColumn(
-                'created_at',
-                Table::TYPE_TIMESTAMP,
-                null,
-                ['nullable' => false, 'default' => Table::TIMESTAMP_INIT],
-                'Created At'
-            )
-            ->addColumn(
-                'synced_at',
-                Table::TYPE_TIMESTAMP,
-                null,
-                ['nullable' => true],
-                'Synchronization Date'
-            )
-            ->addColumn(
-                'last_error',
-                Table::TYPE_TEXT,
-                '64K',
-                ['nullable' => true],
-                'Last Sync Error Message'
-            )
-            ->setComment('Event Log and Sync Queue');
-        $setup->getConnection()->createTable($table);
-
-        $idxFields = 'status';
-        $setup->getConnection()->addIndex(
-            $setup->getTable($tableName),
-            $setup->getIdxName(
+            $idxFields = 'status';
+            $setup->getConnection()->addIndex(
                 $setup->getTable($tableName),
+                $setup->getIdxName(
+                    $setup->getTable($tableName),
+                    $idxFields,
+                    AdapterInterface::INDEX_TYPE_INDEX
+                ),
                 $idxFields,
                 AdapterInterface::INDEX_TYPE_INDEX
-            ),
-            $idxFields,
-            AdapterInterface::INDEX_TYPE_INDEX
-        );
-    }
-
-    /**
-     * @param SchemaSetupInterface $setup
-     * @throws \Zend_Db_Exception
-     */
-    private function createShippingCostTable(SchemaSetupInterface $setup)
-    {
-        $tableName = 'aai_shipping_cost';
-        if ($setup->tableExists($tableName)) {
-            return;
+            );
         }
 
-        $table = $setup->getConnection()->newTable(
-            $setup->getTable($tableName)
-        )
-            ->addColumn(
-                'quote_id',
-                Table::TYPE_INTEGER,
-                null,
-                [
-                    'identity' => false,
-                    'nullable' => false,
-                    'primary'  => true,
-                    'unsigned' => true,
-                ],
-                'Quote ID'
-            )
-            ->addColumn(
-                'code',
-                Table::TYPE_TEXT,
-                255,
-                [
-                    'primary'  => true,
-                    'nullable' => false
-                ],
-                'Shipping Method Code'
-            )
-            ->addColumn(
-                'cost',
-                Table::TYPE_DECIMAL,
-                2,
-                [
-                    'nullable' => true,
-                    'unsigned' => true,
-                ],
-                'Shipping Cost'
-            )
-            ->setComment('Shipping Cost Storage');
-        $setup->getConnection()->createTable($table);
-
-        $setup->getConnection()->addForeignKey(
-            $setup->getFkName(
-                $tableName,
-                'quote_id',
-                $setup->getTable('quote'),
-                'entity_id'
-            ),
-            $setup->getTable($tableName),
-            'quote_id',
-            $setup->getTable('quote'),
-            'entity_id',
-            Table::ACTION_CASCADE
-        );
+        $setup->endSetup();
     }
 }
