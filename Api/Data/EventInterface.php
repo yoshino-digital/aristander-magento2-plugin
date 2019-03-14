@@ -3,7 +3,6 @@ namespace AristanderAi\Aai\Api\Data;
 
 interface EventInterface
 {
-    const ID = 'id';
     const TYPE = 'type';
     const STATUS = 'status';
     const SESSION_ID = 'session_id';
@@ -20,11 +19,6 @@ interface EventInterface
     const PRICELIST_SOURCE = 'pricelist_source';
     const TIMESTAMP = 'timestamp';
     const LAST_ERROR = 'last_error';
-
-    /**
-     * @return int
-     */
-    public function getId();
 
     /**
      * @return string|null
