@@ -1,10 +1,9 @@
 <?php
 namespace AristanderAi\Aai\Model;
 
-use AristanderAi\Aai\Api\Data\EventInterface as ModelInterface;
+use AristanderAi\Aai\Api\Data\EventInterface;
 use AristanderAi\Aai\Api\EventRepositoryInterface;
 use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 /**
  * Class EventRepository
@@ -16,18 +15,18 @@ class EventRepository implements EventRepositoryInterface
     /**
      * @var EventFactory
      */
-    private $modelFactory;
+    private $eventFactory;
 
     /** @var EventResource */
-    private $resource;
+    private $eventResource;
 
     public function __construct(
-        EventFactory $modelFactory,
-        EventResource $resource
+        EventFactory $eventFactory,
+        EventResource $eventResource
 
     ) {
-        $this->modelFactory = $modelFactory;
-        $this->resource = $resource;
+        $this->eventFactory = $eventFactory;
+        $this->eventResource = $eventResource;
     }
 
     /**
@@ -35,14 +34,8 @@ class EventRepository implements EventRepositoryInterface
      */
     public function get($id)
     {
-        $result = $this->modelFactory->create();
-        $this->resource->load($result, $id);
-
-        if ($result->getId()) {
-            throw new NoSuchEntityException(
-                __("The event that was requested doesn't exist. Verify the event ID and try again.")
-            );
-        }
+        $result = $this->eventFactory->create();
+        $this->eventResource->load($result, $id);
 
         return $result;
     }
@@ -52,10 +45,10 @@ class EventRepository implements EventRepositoryInterface
      * @throws \Exception
      * @throws \Magento\Framework\Exception\AlreadyExistsException
      */
-    public function save(ModelInterface $model)
+    public function save(EventInterface $event)
     {
         /** @noinspection PhpParamsInspection */
-        $this->resource->save($model);
+        $this->eventResource->save($event);
 
         return $this;
     }

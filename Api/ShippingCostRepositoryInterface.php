@@ -2,7 +2,6 @@
 namespace AristanderAi\Aai\Api;
 
 use AristanderAi\Aai\Api\Data\ShippingCostInterface;
-use Magento\Framework\Exception\NoSuchEntityException;
 
 interface ShippingCostRepositoryInterface
 {
@@ -10,20 +9,18 @@ interface ShippingCostRepositoryInterface
      * Gets model by primary key
      *
      * @param int $id
-     * @return ShippingCostInterface
-     * @throws NoSuchEntityException
+     * @return ShippingCostInterface|null
      */
-    public function getById($id);
+    public function get($id);
 
     /**
      * Gets model by natural key
      *
      * @param int $quoteId
      * @param string $code
-     * @return ShippingCostInterface
-     * @throws NoSuchEntityException
+     * @return ShippingCostInterface|null
      */
-    public function get($quoteId, $code);
+    public function getByNaturalKey($quoteId, $code);
 
     /**
      * Saves model
@@ -37,12 +34,12 @@ interface ShippingCostRepositoryInterface
      * @param int $quoteId
      * @return $this
      */
-    public function deleteQuoteCosts($quoteId);
+    public function deleteForQuote($quoteId);
 
     /**
      * @param int $quoteId
      * @param array $values
      * @return $this
      */
-    public function saveQuoteCosts($quoteId, array $values);
+    public function saveForQuote($quoteId, array $values);
 }
