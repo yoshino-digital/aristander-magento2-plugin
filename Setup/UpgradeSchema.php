@@ -344,8 +344,11 @@ class UpgradeSchema implements UpgradeSchemaInterface
             ->addColumn(
                 'cost',
                 Table::TYPE_DECIMAL,
-                [12, 4],
-                ['nullable' => false],
+                2,
+                [
+                    'nullable' => true,
+                    'unsigned' => true,
+                ],
                 'Shipping Cost'
             )
             ->setComment('Shipping Cost Storage');
