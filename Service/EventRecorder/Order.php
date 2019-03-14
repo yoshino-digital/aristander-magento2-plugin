@@ -4,12 +4,23 @@ namespace AristanderAi\Aai\Service\EventRecorder;
 use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Helper\Data;
+use Magento\Config\App\Config\Type\System as SystemConfig;
+use Magento\Quote\Model\Quote;
+use Magento\Quote\Model\Quote\Address;
+use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Model\Order as OrderModel;
+use Magento\Store\Model\StoreManager;
 
 class Order
 {
+    /** @var \ReflectionProperty|null */
+    private $configDataReflection;
+
+    /** @var array|null */
+    private $configDataBackup;
+
     /** @var EventFactory */
     private $eventFactory;
 
@@ -22,16 +33,36 @@ class Order
     /** @var Data */
     private $helperData;
 
+    /** @var SystemConfig */
+    private $systemConfig;
+
+    /** @var StoreManager */
+    private $storeManager;
+
+    /** @var Address\RateRequestFactory */
+    private $rateRequestFactory;
+
+    /** @var Address\RateCollectorInterfaceFactory */
+    private $rateCollector;
+
     public function __construct(
         EventFactory $eventFactory,
         EventRepository $eventRepository,
         QuoteRepository $quoteRepository,
-        Data $helperData
+        Data $helperData,
+        SystemConfig $systemConfig,
+        StoreManager $storeManager,
+        Address\RateRequestFactory $rateRequestFactory,
+        Address\RateCollectorInterfaceFactory $rateCollector
     ) {
         $this->eventFactory = $eventFactory;
         $this->eventRepository = $eventRepository;
         $this->quoteRepository = $quoteRepository;
         $this->helperData = $helperData;
+        $this->systemConfig = $systemConfig;
+        $this->storeManager = $storeManager;
+        $this->rateRequestFactory = $rateRequestFactory;
+        $this->rateCollector = $rateCollector;
     }
 
     /**
@@ -50,6 +81,10 @@ class Order
             'products' => [],
             'order_costs' => [],
         ];
+
+        //
+        // Collect item data
+        //
 
         /** @var \Magento\Sales\Model\Order\Item $item */
         foreach ($order->getAllVisibleItems() as $item) {
@@ -90,6 +125,10 @@ class Order
                 'currency_code' => $item->getStore()->getCurrentCurrencyCode(),
             ];
         }
+
+        //
+        // Collect totals
+        //
 
         $quote = $this->quoteRepository->get($order->getQuoteId());
 
@@ -138,6 +177,50 @@ class Order
             $order->getGrandTotal() - $order->getSubtotal()
         );
 
+        //
+        // Collect shipping revenue and profit
+        //
+
+        $shippingMethod = $order->getShippingMethod(true);
+        $shippingCarrierCode = $shippingMethod->getData('carrier_code');
+        $shippingMethodCode = $shippingMethod->getData('method');
+        /** @var Address $address */
+        $address = $quote->getShippingAddress();
+
+        $this->beforeRequestShippingRates($quote);
+
+        $this->setTmpCarrierConfig(
+            $shippingCarrierCode,
+            'free_shipping_enable',
+            false
+        );
+        $this->setTmpCarrierConfig(
+            $shippingCarrierCode,
+            'handling_fee',
+            0
+        );
+
+        $shippingCost = $this->requestShippingRate(
+            $address,
+            $shippingCarrierCode,
+            $shippingMethodCode
+        );
+
+        $this->afterRequestShippingRates();
+
+        $shippingRevenue = $order->getShippingAmount();
+
+        $details['shipping'] = array(
+            'revenue' => $shippingRevenue,
+            'revenue_incl_tax' => $order->getShippingInclTax(),
+            'profit' => $shippingRevenue - $shippingCost,
+            'currency_code' => $order->getStore()->getCurrentCurrencyCode(),
+        );
+
+        //
+        // Save event
+        //
+
         $event->setDetails($details);
 
         $this->eventRepository->save($event);
@@ -148,41 +231,36 @@ class Order
     /**
      * Requests shipping rate
      *
-     * @param Mage_Sales_Model_Quote_Address $address
+     * @param Address $address
      * @param $carrier
      * @param $method
      * @return float|null
+     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     private function requestShippingRate(
-        Mage_Sales_Model_Quote_Address $address,
+        Address $address,
         $carrier,
         $method
     ) {
         /**
          * Based on core code
-         * @see \Mage_Sales_Model_Quote_Address::requestShippingRates
+         * @see \Magento\Quote\Model\Quote\Address::requestShippingRates
          */
 
-        /** @var $request Mage_Shipping_Model_Rate_Request */
-        $request = Mage::getModel('shipping/rate_request');
+        /** @var $request Address\RateRequest */
+        $request = $this->rateRequestFactory->create();
         $request->setAllItems($address->getAllItems());
         $request->setDestCountryId($address->getCountryId());
         $request->setDestRegionId($address->getRegionId());
         $request->setDestRegionCode($address->getRegionCode());
-        /**
-         * need to call getStreet with -1
-         * to get data in string instead of array
-         */
-        $request->setDestStreet(
-            $address->getStreet(
-                Mage_Sales_Model_Quote_Address::DEFAULT_DEST_STREET
-            )
-        );
+        $request->setDestStreet($address->getStreetFull());
         $request->setDestCity($address->getCity());
         $request->setDestPostcode($address->getPostcode());
         $request->setPackageValue($address->getBaseSubtotal());
-        $packageValueWithDiscount = $address->getBaseSubtotalWithDiscount();
-        $request->setPackageValueWithDiscount($packageValueWithDiscount);
+        $request->setPackageValueWithDiscount(
+            $address->getBaseSubtotalWithDiscount()
+        );
         $request->setPackageWeight($address->getWeight());
         $request->setPackageQty($address->getItemQty());
 
@@ -190,46 +268,42 @@ class Order
          * Need for shipping methods that use insurance based on price of physical products
          */
         /** @noinspection PhpUndefinedMethodInspection */
-        $packagePhysicalValue = $address->getBaseSubtotal() - $address->getBaseVirtualAmount();
-        $request->setPackagePhysicalValue($packagePhysicalValue);
+        $request->setPackagePhysicalValue(
+            $address->getBaseSubtotal() - $address->getBaseVirtualAmount()
+        );
 
         /** @noinspection PhpUndefinedMethodInspection */
         $request->setFreeMethodWeight($address->getFreeMethodWeight());
 
         /**
-         * Store and website identifiers need specify from quote
+         * Store and website identifiers specified from StoreManager
          */
-        /*$request->setStoreId(Mage::app()->getStore()->getId());
-        $request->setWebsiteId(Mage::app()->getStore()->getWebsiteId());*/
-
-        $request->setStoreId($this->store->getId());
-        $request->setWebsiteId($this->store->getWebsiteId());
+        $request->setStoreId($this->storeManager->getStore()->getId());
+        $request->setWebsiteId($this->storeManager->getWebsite()->getId());
         $request->setFreeShipping($address->getFreeShipping());
         /**
          * Currencies need to convert in free shipping
          */
-        $request->setBaseCurrency($this->store->getBaseCurrency());
-        $request->setPackageCurrency($this->store->getCurrentCurrency());
+        /** @noinspection PhpUndefinedMethodInspection */
+        $request->setBaseCurrency($this->storeManager->getStore()->getBaseCurrency());
+        /** @noinspection PhpUndefinedMethodInspection */
+        $request->setPackageCurrency($this->storeManager->getStore()->getCurrentCurrency());
         $request->setLimitCarrier($carrier);
+        /** @noinspection PhpUndefinedMethodInspection */
+        $request->setBaseSubtotalInclTax($address->getBaseSubtotalTotalInclTax());
 
         /** @noinspection PhpUndefinedMethodInspection */
-        $request->setBaseSubtotalInclTax(
-            $address->getBaseSubtotalInclTax() + $address->getBaseExtraTaxAmount()
-        );
-
-        /** @noinspection PhpUndefinedMethodInspection */
-        $rateResult = Mage::getModel('shipping/shipping')
-            ->collectRates($request)
+        $result = $this->rateCollector->create()->collectRates($request)
             ->getResult();
 
-        if (!$rateResult) {
+        if (!$result) {
             // Request failed
             return null;
         }
 
-        /** @var Mage_Shipping_Model_Rate_Result_Method $rate */
+        /** @var Method $rate */
         /** @noinspection PhpUndefinedMethodInspection */
-        foreach ($rateResult->getAllRates() as $rate) {
+        foreach ($result->getAllRates() as $rate) {
             if ($method == $rate->getData('method')) {
                 return $rate->getData('price');
             }
@@ -242,23 +316,21 @@ class Order
     /**
      * Prepares to original shipping rate request
      *
-     * @param Mage_Sales_Model_Quote $quote
-     * @throws ReflectionException
+     * @param Quote $quote
+     * @throws \ReflectionException
      */
-    private function beforeRequestShippingRates(Mage_Sales_Model_Quote $quote)
+    private function beforeRequestShippingRates(Quote $quote)
     {
-        $this->store = $quote->getStore();
-
-        $reflectionClass = new ReflectionClass($this->store);
-        $this->configCacheReflection = $reflectionClass->getProperty(
-            '_configCache'
+        $reflectionClass = new \ReflectionClass($this->systemConfig);
+        $this->configDataReflection = $reflectionClass->getProperty(
+            'data'
         );
-        $this->configCacheReflection->setAccessible(true);
-        $this->configCacheBackup = $this->configCacheReflection->getValue(
-            $this->store
+        $this->configDataReflection->setAccessible(true);
+        $this->configDataBackup = $this->configDataReflection->getValue(
+            $this->systemConfig
         );
-        if (null === $this->configCacheBackup) {
-            $this->configCacheBackup = array();
+        if (null === $this->configDataBackup) {
+            $this->configDataBackup = [];
         }
     }
 
@@ -267,17 +339,16 @@ class Order
      */
     private function afterRequestShippingRates()
     {
-        if (null !== $this->configCacheBackup) {
-            $this->configCacheReflection->setValue(
-                $this->store,
-                $this->configCacheBackup
+        if (null !== $this->configDataBackup) {
+            $this->configDataReflection->setValue(
+                $this->systemConfig,
+                $this->configDataBackup
             );
         }
 
-        $this->configCacheReflection->setAccessible(false);
-        $this->configCacheReflection = null;
-        $this->configCacheBackup = null;
-        $this->store = null;
+        $this->configDataReflection->setAccessible(false);
+        $this->configDataReflection = null;
+        $this->configDataBackup = null;
     }
 
     /**
@@ -286,11 +357,13 @@ class Order
      * @param string $carrierCode
      * @param string $field
      * @param string $value
+     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     private function setTmpCarrierConfig($carrierCode, $field, $value)
     {
         $this->setTmpStoreConfig(
             "carriers/{$carrierCode}/{$field}",
+            $this->storeManager->getStore()->getCode(),
             $value
         );
     }
@@ -299,12 +372,31 @@ class Order
      * Sets temporary store config value via cache config hack
      *
      * @param string $path
+     * @param string $storeCode
      * @param string $value
      */
-    private function setTmpStoreConfig($path, $value)
+    private function setTmpStoreConfig($path, $storeCode, $value)
     {
-        $cache = $this->configCacheReflection->getValue($this->store);
-        $cache[$path] = $value;
-        $this->configCacheReflection->setValue($this->store, $cache);
+        $path = "stores/{$storeCode}/$path";
+        $pathParts = explode('/', $path);
+        $lastKey = array_pop($pathParts);
+
+        $data = $this->configDataReflection->getValue($this->systemConfig);
+        if (!is_array($data)) {
+            $data = [];
+        }
+
+        $dataRef = & $data;
+        foreach ($pathParts as $key) {
+            if (!is_array($dataRef[$key])) {
+                $dataRef[$key] = [];
+            }
+
+            $dataRef = & $dataRef[$key];
+        }
+
+        $dataRef[$lastKey] = $value;
+
+        $this->configDataReflection->setValue($this->systemConfig, $data);
     }
 }
