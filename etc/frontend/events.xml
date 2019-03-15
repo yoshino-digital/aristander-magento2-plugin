@@ -1,27 +1,35 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Event/etc/events.xsd">
     <event name="controller_action_predispatch">
-        <observer name="aristander_ai_aai_start_page_record" instance="AristanderAi\Aai\Observer\StartPageRecord" />
+        <observer name="aristander_ai_aai_start_page_record"
+                  instance="AristanderAi\Aai\Observer\StartPageRecord" />
     </event>
     <event name="checkout_cart_save_before">
-        <observer name="aristander_ai_aai_cart_save_before" instance="AristanderAi\Aai\Observer\CartSave" />
+        <observer name="aristander_ai_aai_cart_save_before"
+                  instance="AristanderAi\Aai\Observer\CartSave" />
     </event>
     <event name="checkout_cart_save_after">
-        <observer name="aristander_ai_aai_cart_save_after" instance="AristanderAi\Aai\Observer\CartSave" />
+        <observer name="aristander_ai_aai_cart_save_after"
+                  instance="AristanderAi\Aai\Observer\CartSave" />
     </event>
     <event name="sales_order_place_after">
-        <observer name="aristander_ai_aai_sales_order_place_after" instance="AristanderAi\Aai\Observer\OrderPlaceAfter" />
+        <observer name="aristander_ai_aai_sales_order_place_after"
+                  instance="AristanderAi\Aai\Observer\OrderPlaceAfter" />
     </event>
     <event name="customer_login">
-        <observer name="aristander_ai_aai_customer_login" instance="AristanderAi\Aai\Observer\CustomerLogin" />
+        <observer name="aristander_ai_aai_customer_login"
+                  instance="AristanderAi\Aai\Observer\CustomerLogin" />
     </event>
     <event name="customer_session_init">
-        <observer name="aristander_ai_aai_customer_session_init" instance="AristanderAi\Aai\Observer\CustomerSessionInit" />
+        <observer name="aristander_ai_aai_customer_session_init"
+                  instance="AristanderAi\Aai\Observer\CustomerSessionInit" />
     </event>
     <event name="catalog_product_get_final_price">
-        <observer name="aristander_ai_aai_catalog_product_get_final_price" instance="AristanderAi\Aai\Observer\PriceInit" />
+        <observer name="aristander_ai_aai_catalog_product_get_final_price"
+                  instance="AristanderAi\Aai\Observer\PriceInit" />
     </event>
     <event name="catalog_product_collection_load_after">
-        <observer name="aristander_ai_aai_catalog_product_collection_load_after" instance="AristanderAi\Aai\Observer\PriceInit" />
+        <observer name="aristander_ai_aai_catalog_product_collection_load_after"
+                  instance="AristanderAi\Aai\Observer\PriceInit" />
     </event>
 </config>

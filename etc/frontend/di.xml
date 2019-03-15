@@ -4,4 +4,8 @@
         <plugin name="aristander_ai_aai_price_box"
                 type="AristanderAi\Aai\Plugin\PriceBoxPlugin" />
     </type>
+    <type name="\Magento\Framework\HTTP\PhpEnvironment\Response">
+        <plugin name="aristander_ai_aai_response"
+                type="AristanderAi\Aai\Plugin\ResponsePlugin" />
+    </type>
 </config>

@@ -39,6 +39,12 @@ class Page extends Action
         return parent::__construct($context);
     }
 
+    /**
+     * @return \Magento\Framework\Controller\Result\Json
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
+     */
     public function execute()
     {
         $result = $this->resultJsonFactory->create();
