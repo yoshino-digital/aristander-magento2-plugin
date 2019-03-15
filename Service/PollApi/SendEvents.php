@@ -4,12 +4,15 @@ namespace AristanderAi\Aai\Service\PollApi;
 use AristanderAi\Aai\Cron\SendEvents\Exception;
 use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
+use AristanderAi\Aai\Helper\PushApi;
 use AristanderAi\Aai\Model\Event;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
 use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
 use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use /** @noinspection PhpUndefinedClassInspection */
     \Psr\Log\LoggerInterface;
@@ -47,6 +50,9 @@ class SendEvents
 
     /** @var ResourceConnection */
     private $resource;
+    
+    /** @var PushApi */
+    private $helperPushApi;
 
     public function __construct(
         /** @noinspection PhpUndefinedClassInspection */
@@ -57,7 +63,8 @@ class SendEvents
         HttpClientCreator $httpClientCreator,
         DateTime $date,
         Data $helperData,
-        ResourceConnection $resource
+        PushApi $helperPushApi
+       
     ) {
         $this->logger = $logger;
         $this->eventCollectionFactory = $eventCollectionFactory;
@@ -66,7 +73,7 @@ class SendEvents
         $this->httpClientCreator = $httpClientCreator;
         $this->date = $date;
         $this->helperData = $helperData;
-        $this->resource = $resource;
+        $this->helperPushApi = $helperPushApi;
     }
 
     /**
@@ -98,7 +105,7 @@ class SendEvents
 
             $pageCount = $eventCollection->getLastPageNumber();
             for ($pageNo = 1; $pageNo <= $pageCount; $pageNo++) {
-                $this->logger->debug("Processing page #{$pageNo} of {$eventCollection->getLastPageNumber()}");
+                $this->logger->debug("Processing page #{$pageNo} of {$pageCount}");
 
                 $events = $this->exportEvents($eventCollection);
                 if (empty($events)) {
@@ -108,8 +115,12 @@ class SendEvents
 
                 $this->logger->debug("Fetched events: " . count($events));
                 $this->logger->debug(
-                    "Sending event page #{$pageNo} of {$eventCollection->getLastPageNumber()}"
+                    "Sending event page #{$pageNo} of {$pageCount}"
                 );
+
+                if (1 == $pageNo) {
+                    $events[] = $this->getPingEventData();
+                }
 
                 $exception = null;
                 $notAcceptedEvents = [];
@@ -124,8 +135,6 @@ class SendEvents
                 }
 
                 $this->logger->debug('Updating processed event statuses');
-                
-                //TODO: add transaction
 
                 $this->updateEventStatuses(
                     $eventCollection,
@@ -168,7 +177,7 @@ class SendEvents
 
         try {
             $this->sendPingEvent();
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->critical($e);
         }
     }
@@ -252,16 +261,12 @@ class SendEvents
 
     /**
      * @throws Exception
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     private function sendPingEvent()
     {
-        $this->sendEvents([
-            [
-                'event_type' => 'ping',
-                'event_details' => [],
-                'timestamp' => time(),
-            ],
-        ]);
+        $this->sendEvents([$this->getPingEventData()]);
     }
 
     /**
@@ -293,7 +298,7 @@ class SendEvents
             }
         }
 
-        $connection = $this->resource->getConnection();
+        $connection = $this->eventResource->getConnection();
         $connection->beginTransaction();
 
         try {
@@ -323,5 +328,23 @@ class SendEvents
             'url' => $this->helperData->getConfigValue('api/send_events')
                 ?: $this->endPointUrl,
         ]);
+    }
+
+    /**
+     * @return array
+     * @throws \Magento\Framework\Exception\AlreadyExistsException
+     * @throws \Magento\Framework\Exception\LocalizedException
+     */
+    private function getPingEventData()
+    {
+        return [
+            'event_type' => 'ping',
+            'event_details' => [
+                'access_token' => $this->helperPushApi->getAccessToken(),
+                'base_url' => $this->helperPushApi->getBaseUrl(),
+                'api_url_prices' => $this->helperPushApi->getApiUrl('prices'),
+            ],
+            'timestamp' => time(),
+        ];
     }
 }
