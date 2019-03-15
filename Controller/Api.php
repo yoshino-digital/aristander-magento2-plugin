@@ -2,7 +2,6 @@
 
 namespace AristanderAi\Aai\Controller;
 
-use AristanderAi\Aai\Helper\Deferred;
 use AristanderAi\Aai\Helper\PushApi;
 use Magento\Framework\App\Action\Action;
 use Magento\Framework\App\Action\Context;
@@ -15,9 +14,6 @@ abstract class Api extends Action
 
     /** @var JsonFactory */
     private $resultJsonFactory;
-
-    /** @var Data */
-    private $helperData;
 
     /** @var PushApi */
     private $helperPushApi;
@@ -71,12 +67,12 @@ abstract class Api extends Action
             $response->setHttpResponseCode($this->errors[0]['status']);
         }
 
-        $resultData = [];
+        $resultData = new \StdClass;
         if (!empty($this->errors)) {
-            $resultData['errors'] = $this->errors;
+            $resultData->errors = $this->errors;
         }
         if (null !== $this->data) {
-            $resultData['data'] = $this->data;
+            $resultData->data = $this->data;
         }
 
         $result->setData($resultData);
