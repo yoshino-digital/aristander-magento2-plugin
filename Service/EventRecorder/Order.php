@@ -5,12 +5,14 @@ use AristanderAi\Aai\Model\EventFactory;
 use AristanderAi\Aai\Model\EventRepository;
 use AristanderAi\Aai\Helper\Data;
 use Magento\Config\App\Config\Type\System as SystemConfig;
+use Magento\Framework\DataObject;
 use Magento\Quote\Model\Quote;
 use Magento\Quote\Model\Quote\Address;
 use Magento\Quote\Model\Quote\Address\RateResult\Method;
 use Magento\Quote\Model\Quote\Address\Total;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Sales\Model\Order as OrderModel;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManager;
 
 class Order
@@ -20,6 +22,9 @@ class Order
 
     /** @var array|null */
     private $configDataBackup;
+
+    /** @var Store */
+    private $store;
 
     /** @var EventFactory */
     private $eventFactory;
@@ -36,9 +41,6 @@ class Order
     /** @var SystemConfig */
     private $systemConfig;
 
-    /** @var StoreManager */
-    private $storeManager;
-
     /** @var Address\RateRequestFactory */
     private $rateRequestFactory;
 
@@ -51,7 +53,6 @@ class Order
         QuoteRepository $quoteRepository,
         Data $helperData,
         SystemConfig $systemConfig,
-        StoreManager $storeManager,
         Address\RateRequestFactory $rateRequestFactory,
         Address\RateCollectorInterfaceFactory $rateCollector
     ) {
@@ -60,7 +61,6 @@ class Order
         $this->quoteRepository = $quoteRepository;
         $this->helperData = $helperData;
         $this->systemConfig = $systemConfig;
-        $this->storeManager = $storeManager;
         $this->rateRequestFactory = $rateRequestFactory;
         $this->rateCollector = $rateCollector;
     }
@@ -206,7 +206,7 @@ class Order
             $shippingMethodCode
         );
 
-        $this->afterRequestShippingRates();
+        $this->afterRequestShippingRates($quote);
 
         $shippingRevenue = $order->getShippingAmount();
 
@@ -278,16 +278,16 @@ class Order
         /**
          * Store and website identifiers specified from StoreManager
          */
-        $request->setStoreId($this->storeManager->getStore()->getId());
-        $request->setWebsiteId($this->storeManager->getWebsite()->getId());
-        $request->setFreeShipping($address->getFreeShipping());
+        $request->setStoreId($this->store->getId());
+        $request->setWebsiteId($this->store->getWebsite()->getId());
+        $request->setFreeShipping(0);
         /**
          * Currencies need to convert in free shipping
          */
         /** @noinspection PhpUndefinedMethodInspection */
-        $request->setBaseCurrency($this->storeManager->getStore()->getBaseCurrency());
+        $request->setBaseCurrency($this->store->getBaseCurrency());
         /** @noinspection PhpUndefinedMethodInspection */
-        $request->setPackageCurrency($this->storeManager->getStore()->getCurrentCurrency());
+        $request->setPackageCurrency($this->store->getCurrentCurrency());
         $request->setLimitCarrier($carrier);
         /** @noinspection PhpUndefinedMethodInspection */
         $request->setBaseSubtotalInclTax($address->getBaseSubtotalTotalInclTax());
@@ -321,6 +321,8 @@ class Order
      */
     private function beforeRequestShippingRates(Quote $quote)
     {
+        $this->store = $quote->getStore();
+
         $reflectionClass = new \ReflectionClass($this->systemConfig);
         $this->configDataReflection = $reflectionClass->getProperty(
             'data'
@@ -332,12 +334,19 @@ class Order
         if (null === $this->configDataBackup) {
             $this->configDataBackup = [];
         }
+
+        // Reset free_shipping flag
+        $address = $quote->getShippingAddress();
+        $this->resetFreeShipping($address);
+        foreach ($address->getAllItems() as $item) {
+            $this->resetFreeShipping($item);
+        }
     }
 
     /**
      * Restores config after original shipping rate request
      */
-    private function afterRequestShippingRates()
+    private function afterRequestShippingRates(Quote $quote)
     {
         if (null !== $this->configDataBackup) {
             $this->configDataReflection->setValue(
@@ -349,6 +358,14 @@ class Order
         $this->configDataReflection->setAccessible(false);
         $this->configDataReflection = null;
         $this->configDataBackup = null;
+        $this->store = null;
+
+        // Restore free_shipping flag
+        $address = $quote->getShippingAddress();
+        $this->restoreFreeShipping($address);
+        foreach ($address->getAllItems() as $item) {
+            $this->restoreFreeShipping($item);
+        }
     }
 
     /**
@@ -357,13 +374,11 @@ class Order
      * @param string $carrierCode
      * @param string $field
      * @param string $value
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
      */
     private function setTmpCarrierConfig($carrierCode, $field, $value)
     {
         $this->setTmpStoreConfig(
             "carriers/{$carrierCode}/{$field}",
-            $this->storeManager->getStore()->getCode(),
             $value
         );
     }
@@ -372,12 +387,11 @@ class Order
      * Sets temporary store config value via cache config hack
      *
      * @param string $path
-     * @param string $storeCode
      * @param string $value
      */
-    private function setTmpStoreConfig($path, $storeCode, $value)
+    private function setTmpStoreConfig($path, $value)
     {
-        $path = "stores/{$storeCode}/$path";
+        $path = "stores/{$this->store->getCode()}/$path";
         $pathParts = explode('/', $path);
         $lastKey = array_pop($pathParts);
 
@@ -398,5 +412,27 @@ class Order
         $dataRef[$lastKey] = $value;
 
         $this->configDataReflection->setValue($this->systemConfig, $data);
+    }
+
+    private function resetFreeShipping(DataObject $object)
+    {
+        if ($object->hasData('free_shipping')) {
+            $object->setData(
+                'free_shipping_bak',
+                $object->getData('free_shipping')
+            );
+            $object->setData('free_shipping', 0);
+        }
+    }
+
+    private function restoreFreeShipping(DataObject $object)
+    {
+        if ($object->hasData('free_shipping_bak')) {
+            $object->setData(
+                'free_shipping',
+                $object->getData('free_shipping_bak')
+            );
+            $object->unsetData('free_shipping_bak');
+        }
     }
 }
