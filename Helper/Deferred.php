@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 
 class Deferred extends AbstractHelper
 {
-    private $callbacks = array();
+    private $callbacks = [];
     private $timeLimit = 3600;
 
     /** @var LoggerInterface */

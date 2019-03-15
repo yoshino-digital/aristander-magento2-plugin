@@ -10,19 +10,19 @@ class PriceMode implements \Magento\Framework\Option\ArrayInterface
      */
     public function toOptionArray()
     {
-        return array(
-            array(
+        return [
+            [
                 'value' => 'original',
                 'label' => __('Original prices'),
-            ),
-            array(
+            ],
+            [
                 'value' => 'alternative',
                 'label' => __('Aristander prices'),
-            ),
-            array(
+            ],
+            [
                 'value' => 'split',
                 'label' => __('A/B price testing'),
-            ),
-        );
+            ],
+        ];
     }
 }

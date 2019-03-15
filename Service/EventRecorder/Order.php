@@ -210,12 +210,12 @@ class Order
 
         $shippingRevenue = $order->getShippingAmount();
 
-        $details['shipping'] = array(
+        $details['shipping'] = [
             'revenue' => $shippingRevenue,
             'revenue_incl_tax' => $order->getShippingInclTax(),
             'profit' => $shippingRevenue - $shippingCost,
             'currency_code' => $order->getStore()->getCurrentCurrencyCode(),
-        );
+        ];
 
         //
         // Save event

@@ -57,10 +57,10 @@ class Prices extends Api
         }
 
         if (!$this->helperData->isPriceImportEnabled()) {
-            $this->addError(array(
+            $this->addError([
                 'code' => 'disabled',
                 'title' => 'Price import is disabled by module settings',
-            ));
+            ]);
             return null;
         }
 

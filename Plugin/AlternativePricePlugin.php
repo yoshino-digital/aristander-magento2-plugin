@@ -66,7 +66,7 @@ class AlternativePricePlugin
 
         $indexTable = $subject->getIdxTable();
 
-        $bind = array();
+        $bind = [];
         foreach ($updateFields as $priceField) {
             $bind[$priceField] = new \Zend_Db_Expr('tier_price');
         }

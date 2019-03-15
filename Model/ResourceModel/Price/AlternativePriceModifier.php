@@ -50,7 +50,7 @@ class AlternativePriceModifier implements PriceModifierInterface
 
         $indexTable = $priceTable->getTableName();
 
-        $bind = array();
+        $bind = [];
         foreach ($updateFields as $priceField) {
             $bind[$priceField] = new \Zend_Db_Expr('tier_price');
         }

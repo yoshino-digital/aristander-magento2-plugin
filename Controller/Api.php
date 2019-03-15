@@ -87,20 +87,20 @@ abstract class Api extends Action
         /** @var \Magento\Framework\App\Response\Http $response */
         $response = $this->getResponse();
 
-        $authErrorMessages = array(
+        $authErrorMessages = [
             'no-auth' => 'Authentication required',
             'invalid-auth' => 'Invalid access token',
-        );
+        ];
 
         $response->setHeader(
             'WWW-Authenticate',
             'Basic realm="Aristander.ai API"'
         );
 
-        $error = array(
+        $error = [
             'status' => 401,
             'code' => $code,
-        );
+        ];
         if (isset($authErrorMessages[$code])) {
             $error['title'] = $authErrorMessages[$code];
         }

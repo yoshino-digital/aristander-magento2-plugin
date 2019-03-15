@@ -289,12 +289,12 @@ class Price extends AbstractHelper
             $prices[$key]['price_qty'] = 1;
             unset($prices[$key]['website_price']);
         } else {
-            $prices[] = array(
+            $prices[] = [
                 'website_id' => 0,
                 'cust_group' => $this->getCustomerGroupId(),
                 'price' => $value,
                 'price_qty' => 1,
-            );
+            ];
         }
 
         $product->setData('tier_price', $prices);
