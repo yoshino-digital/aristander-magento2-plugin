@@ -237,7 +237,7 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     Table::TYPE_INTEGER,
                     null,
                     ['nullable' => false],
-                    'vent registration UNIX timestamp'
+                    'Event registration UNIX timestamp'
                 )
                 ->addColumn(
                     'created_at',
