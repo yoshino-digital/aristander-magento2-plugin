@@ -40,7 +40,7 @@ class EventFactory
      * Create class instance with specified parameters
      *
      * @param array $data
-     * @return \AristanderAi\Aai\Model\Event
+     * @return Event
      */
     public function create(array $data = [])
     {

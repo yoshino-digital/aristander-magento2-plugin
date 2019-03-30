@@ -57,6 +57,9 @@ class Page
      * Starts tracking page view event
      *
      * @return $this
+     * @throws \Magento\Framework\Exception\InputException
+     * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
+     * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
     public function start()
     {
