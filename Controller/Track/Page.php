@@ -64,7 +64,7 @@ class Page extends Action
 
             $this->pageRecorder
                 ->setEvent($event)
-                ->recordProducts($products);
+                ->saveProducts($products);
         } catch (ValidationException $e) {
             /** @noinspection PhpUnnecessaryFullyQualifiedNameInspection */
             $result->setHttpResponseCode(\Magento\Framework\Webapi\Exception::HTTP_BAD_REQUEST)

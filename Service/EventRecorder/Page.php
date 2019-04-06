@@ -129,7 +129,7 @@ class Page
      * @param array $products
      * @return $this
      */
-    public function recordProducts(array $products)
+    public function saveProducts(array $products)
     {
         $details = $this->event->getDetails();
         // Workaround for cart and checkout pages not registering products
