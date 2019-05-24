@@ -32,7 +32,6 @@ class SendEvents
     /**
      * Implements cron task
      * 
-     * @throws SendEvents\Exception
      * @throws \AristanderAi\Aai\Helper\PollApi\HttpClientCreator\Exception
      * @throws \Magento\Framework\Exception\FileSystemException
      * @throws \Magento\Framework\Exception\LocalizedException
