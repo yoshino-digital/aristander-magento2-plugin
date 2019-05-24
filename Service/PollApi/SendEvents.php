@@ -1,7 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Service\PollApi;
 
-use AristanderAi\Aai\Cron\SendEvents\Exception;
+use AristanderAi\Aai\Service\SendEvents\Exception;
 use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Helper\PushApi;
@@ -11,8 +11,6 @@ use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
 use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
 use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
-use Magento\Framework\Exception\AlreadyExistsException;
-use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use /** @noinspection PhpUndefinedClassInspection */
     \Psr\Log\LoggerInterface;

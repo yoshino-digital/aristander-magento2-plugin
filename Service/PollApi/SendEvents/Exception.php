@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Cron\SendEvents;
+namespace AristanderAi\Aai\Service\SendEvents;
 
 use Magento\Framework\Exception\LocalizedException;
 

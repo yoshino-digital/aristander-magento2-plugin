@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Cron\ImportPrices;
+namespace AristanderAi\Aai\Service\ImportPrices;
 
 use Magento\Framework\Exception\LocalizedException;
 
