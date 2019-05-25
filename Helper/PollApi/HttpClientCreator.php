@@ -23,7 +23,7 @@ class HttpClientCreator extends AbstractHelper
     /** @var Filesystem */
     private $filesystem;
 
-    private $commonHttpClientOptions = [
+    private $defaultOptions = [
         'maxredirects' => 0,
         'timeout' => 30,
     ];
@@ -62,7 +62,7 @@ class HttpClientCreator extends AbstractHelper
         try {
             $this->httpClient->reset();
 
-            $httpClientOptions = $this->commonHttpClientOptions;
+            $httpClientOptions = $this->defaultOptions;
 
             // Optional stuff
 
