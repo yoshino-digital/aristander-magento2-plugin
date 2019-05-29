@@ -172,7 +172,7 @@ class Price extends AbstractHelper
      */
     public function getAlternativePriceFlag()
     {
-        if (is_null($this->alternativePriceFlag)) {
+        if (null === $this->alternativePriceFlag) {
             $this->initAlternativePriceFlag();
         }
 
@@ -310,7 +310,8 @@ class Price extends AbstractHelper
      * @return $this
      * @throws \Magento\Framework\Exception\LocalizedException
      */
-    public function unsetProductAlternativePrice(Product $product) {
+    public function unsetProductAlternativePrice(Product $product)
+    {
         $key = $this->getProductAlternativePriceKey($product);
         if (null === $key) {
             return $this;
