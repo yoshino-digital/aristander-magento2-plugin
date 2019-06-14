@@ -137,8 +137,6 @@ class Page
             $products = $details['products'];
         }
 
-        $details['products'] = [];
-
         if (isset($details['product_id']) && count($products) > 1) {
             $productId = $details['product_id'];
             if (isset($products[$productId])) {
@@ -152,9 +150,7 @@ class Page
         }
 
         // Remove ID keys
-        $products = array_values($products);
-
-        $details['products'] = $products;
+        $details['products'] = array_values($products);
 
         $this->event->setDetails($details);
 
