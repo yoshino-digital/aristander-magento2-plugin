@@ -1,7 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Service\PollApi;
 
-use AristanderAi\Aai\Service\ImportPrices\Exception;
+use AristanderAi\Aai\Service\PollApi\ImportPrices\Exception;
 use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Helper\Price;

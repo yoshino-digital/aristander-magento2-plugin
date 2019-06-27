@@ -1,5 +1,5 @@
 <?php
-namespace AristanderAi\Aai\Service\ImportPrices;
+namespace AristanderAi\Aai\Service\PollApi\ImportPrices;
 
 use Magento\Framework\Exception\LocalizedException;
 
