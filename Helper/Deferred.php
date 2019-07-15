@@ -46,7 +46,7 @@ class Deferred extends AbstractHelper
             return $this;
         }
 
-        $this->releaseRequest($response);
+        $this->closeConnection($response);
 
         $this->storeManager->setCurrentStore(0);
 
@@ -65,7 +65,7 @@ class Deferred extends AbstractHelper
         return $this;
     }
 
-    private function releaseRequest(Response $response)
+    private function closeConnection(Response $response)
     {
         session_write_close();
 
