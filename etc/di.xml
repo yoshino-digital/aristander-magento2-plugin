@@ -15,4 +15,8 @@
         <plugin name="aristander_ai_aai_cache_identifier"
                 type="AristanderAi\Aai\Plugin\CacheIdentifierPlugin" />
     </type>
+    <type name="Magento\Framework\App\Request\CsrfValidator">
+        <plugin name="aristander_ai_aai_csrf_validator_skip"
+        type="AristanderAi\Aai\Plugin\CsrfValidatorPlugin" />
+    </type>
 </config>

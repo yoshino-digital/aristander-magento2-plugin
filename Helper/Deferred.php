@@ -79,8 +79,9 @@ class Deferred extends AbstractHelper
             return;
         }
 
-        header('Content-Length: ' . strlen($response->getBody()));
-        header('Connection: close'); // not required - ?
+        header('Content-Length: ' . strlen($response->getBody()), true);
+        header('Content-Encoding: none', true);
+        header('Connection: close', true);
 
         ob_flush();
         flush();
