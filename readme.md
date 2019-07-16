@@ -1,5 +1,8 @@
 Version history:
 
+1.2.1
+* fixed: push API access on Magento 2.3
+
 1.2.0
 * added: price mode switch
 * added: push API
