@@ -38,9 +38,6 @@ class Price extends AbstractHelper
     /** @var Data */
     private $helperData;
 
-    /** @var CrawlerDetect */
-    private $crawlerDetect;
-
     /** @var \Magento\Framework\Stdlib\CookieManagerInterface */
     private $cookie;
 
@@ -62,7 +59,6 @@ class Price extends AbstractHelper
     public function __construct(
         Context $context,
         Data $helperData,
-        CrawlerDetect $crawlerDetect,
         CookieManagerInterface $cookie,
         GroupInterfaceFactory $groupFactory,
         GroupRepositoryInterface $groupRepository,
@@ -71,7 +67,6 @@ class Price extends AbstractHelper
         ProductResource $productResource
     ) {
         $this->helperData = $helperData;
-        $this->crawlerDetect = $crawlerDetect;
         $this->cookie = $cookie;
         $this->groupFactory = $groupFactory;
         $this->groupRepository = $groupRepository;
@@ -395,17 +390,18 @@ class Price extends AbstractHelper
      */
     private function initAlternativePriceFlag()
     {
-        if ($this->crawlerDetect->isCrawler()) {
-            $this->alternativePriceFlag = false;
-            return;
-        }
-
         switch ($this->getMode()) {
             case 'alternative':
                 $this->alternativePriceFlag = true;
                 break;
 
             case 'split':
+                $crawlerDetect = new CrawlerDetect();
+                if ($crawlerDetect->isCrawler()) {
+                    $this->alternativePriceFlag = false;
+                    break;
+                }
+
                 $version = $this->cookie->getCookie($this->cookieName);
                 if ('' == $version) {
                     // Cookie not set - randomize and assign
