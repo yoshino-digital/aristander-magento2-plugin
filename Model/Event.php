@@ -162,7 +162,7 @@ class Event extends AbstractModel implements EventInterface
             $this->setData(
                 $key,
                 $this->helperPrice->getAlternativePriceFlag()
-                    ? 'alternative'
+                    ? 'aristander'
                     : 'original'
             );
         }
