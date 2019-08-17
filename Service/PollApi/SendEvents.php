@@ -1,7 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Service\PollApi;
 
-use AristanderAi\Aai\Service\SendEvents\PollApi\Exception;
+use AristanderAi\Aai\Service\PollApi\SendEvents\Exception;
 use AristanderAi\Aai\Helper\PollApi\HttpClientCreator;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Helper\PushApi;
@@ -11,12 +11,17 @@ use AristanderAi\Aai\Model\ResourceModel\Event as EventResource;
 use AristanderAi\Aai\Model\ResourceModel\Event\Collection;
 use AristanderAi\Aai\Model\ResourceModel\Event\CollectionFactory as EventCollectionFactory;
 use Magento\Framework\App\ResourceConnection;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\FileSystemException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Stdlib\DateTime\DateTime;
 use /** @noinspection PhpUndefinedClassInspection */
     \Psr\Log\LoggerInterface;
 
 class SendEvents
 {
+    const API_VERSION = '1.1';
+
     private $endPointUrl = 'https://api.aristander.ai/events';
 
     private $maxCount = 100;
@@ -76,8 +81,8 @@ class SendEvents
 
     /**
      * @throws HttpClientCreator\Exception
-     * @throws \Magento\Framework\Exception\FileSystemException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws FileSystemException
+     * @throws LocalizedException
      * @throws Exception
      */
     public function execute()
@@ -228,6 +233,8 @@ class SendEvents
      */
     private function sendEvents(array $events)
     {
+        $events = array_map([$this, 'prepareEventData'], $events);
+
         $this->httpClient->setRawBody(json_encode(compact('events')));
 
         try {
@@ -259,8 +266,8 @@ class SendEvents
 
     /**
      * @throws Exception
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws AlreadyExistsException
+     * @throws LocalizedException
      */
     private function sendPingEvent()
     {
@@ -317,7 +324,7 @@ class SendEvents
      *
      * @throws HttpClientCreator\NotConfiguredException
      * @throws HttpClientCreator\Exception
-     * @throws \Magento\Framework\Exception\FileSystemException
+     * @throws FileSystemException
      * @throws \Magento\Framework\Exception\ValidatorException
      */
     private function initHttpClient()
@@ -330,8 +337,8 @@ class SendEvents
 
     /**
      * @return array
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @throws AlreadyExistsException
+     * @throws LocalizedException
      */
     private function getPingEventData()
     {
@@ -344,5 +351,31 @@ class SendEvents
             ],
             'timestamp' => time(),
         ];
+    }
+
+    /**
+     * Applies last-minute preparations before sending event data
+     *
+     * @param array $data
+     * @return array
+     */
+    private function prepareEventData(array $data)
+    {
+        $data['api_version'] = self::API_VERSION;
+        $data['timestamp'] = $this->exportTimestamp($data['timestamp']);
+
+        return $data;
+    }
+
+    /**
+     * Converts timestamp in seconds with fractional part to milliseconds
+     * integer string
+     *
+     * @param float $value
+     * @return string
+     */
+    private function exportTimestamp($value)
+    {
+        return number_format($value, 3, '', '');
     }
 }
