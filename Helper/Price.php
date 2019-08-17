@@ -1,12 +1,14 @@
 <?php
 namespace AristanderAi\Aai\Helper;
 
+use AristanderAi\Aai\Model\Flag\ModelParams;
 use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\ResourceModel\Product as ProductResource;
 use Magento\Customer\Model\Session;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Flag\FlagResource;
 use Magento\Framework\Stdlib\Cookie\PublicCookieMetadata;
 use Magento\Framework\Stdlib\CookieManagerInterface;
 use Magento\Customer\Api\Data\GroupInterfaceFactory;
@@ -56,6 +58,12 @@ class Price extends AbstractHelper
     /** @var ProductResource */
     private $productResource;
 
+    /** @var ModelParams */
+    private $modelParamsFlag;
+
+    /** @var FlagResource */
+    private $flagResource;
+
     public function __construct(
         Context $context,
         Data $helperData,
@@ -64,7 +72,9 @@ class Price extends AbstractHelper
         GroupRepositoryInterface $groupRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
         FilterBuilder $filterBuilder,
-        ProductResource $productResource
+        ProductResource $productResource,
+        ModelParams $modelParamsFlag,
+        FlagResource $flagResource
     ) {
         $this->helperData = $helperData;
         $this->cookie = $cookie;
@@ -73,6 +83,8 @@ class Price extends AbstractHelper
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
         $this->filterBuilder = $filterBuilder;
         $this->productResource = $productResource;
+        $this->modelParamsFlag = $modelParamsFlag;
+        $this->flagResource = $flagResource;
 
         parent::__construct($context);
     }
@@ -379,6 +391,34 @@ class Price extends AbstractHelper
         return $this->alternativePriceAttributeCode;
     }
 
+    /**
+     * Reads model_params flag
+     *
+     * @return string
+     */
+    public function getModelParams()
+    {
+        return $this->loadModelParamsFlag()->getFlagData();
+    }
+
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * Writes model_params flag
+     *
+     * @param string $value
+     * @return $this
+     */
+    public function setModelParams($value)
+    {
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->loadModelParamsFlag();
+        $this->modelParamsFlag->setFlagData($value);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->flagResource->save($this->modelParamsFlag);
+
+        return $this;
+    }
+
     //
     // Private methods
     //
@@ -434,5 +474,15 @@ class Price extends AbstractHelper
                 $this->alternativePriceFlag = false;
                 break;
         }
+    }
+
+    private function loadModelParamsFlag()
+    {
+        if (null === $this->modelParamsFlag->getId()) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->modelParamsFlag->loadSelf();
+        }
+
+        return $this->modelParamsFlag;
     }
 }

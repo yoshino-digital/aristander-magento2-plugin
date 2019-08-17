@@ -349,7 +349,7 @@ class SendEvents
                 'base_url' => $this->helperPushApi->getBaseUrl(),
                 'api_url_prices' => $this->helperPushApi->getApiUrl('prices'),
             ],
-            'timestamp' => time(),
+            'timestamp' => microtime(true),
         ];
     }
 

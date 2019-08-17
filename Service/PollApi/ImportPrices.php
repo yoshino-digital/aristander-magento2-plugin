@@ -119,16 +119,12 @@ class ImportPrices
 
         $this->process($response->getStream());
 
-        // Set price mode
-        $modeHeader = $response->getHeaders()->get('price_mode');
-        if ($modeHeader) {
-            $mode = $modeHeader->getFieldValue();
-            if (isset($this->priceModeMap[$mode])) {
-                $mode = $this->priceModeMap[$mode];
-            }
-
-            $this->logger->debug("Setting price mode to '{$mode}'");
-            $this->helperPrice->setMode($mode);
+        // Set model params
+        $header = $response->getHeaders()->get('model_params');
+        if ($header) {
+            $value = $header->getFieldValue();
+            $this->logger->debug("Setting model params to '{$value}'");
+            $this->helperPrice->setModelParams($value);
         }
 
         $this->logger->debug('Finished Aristander.ai price import');

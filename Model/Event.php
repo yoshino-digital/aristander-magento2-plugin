@@ -151,7 +151,7 @@ class Event extends AbstractModel implements EventInterface
             $this->setData($key, $this->getStore()->getId());
         }
 
-        // Price mode and source
+        // Price mode, source and model params
         $key = 'price_mode';
         if (!$this->hasData($key)) {
             $this->setData($key, $this->helperPrice->getMode());
@@ -165,6 +165,11 @@ class Event extends AbstractModel implements EventInterface
                     ? 'aristander'
                     : 'original'
             );
+        }
+
+        $key = 'model_params';
+        if (!$this->hasData($key)) {
+            $this->setData($key, $this->helperPrice->getModelParams());
         }
 
         return $this;
@@ -207,6 +212,7 @@ class Event extends AbstractModel implements EventInterface
             'version',
             'price_mode',
             'pricelist_source',
+            'model_params',
         ];
     }
 
@@ -512,6 +518,24 @@ class Event extends AbstractModel implements EventInterface
     }
 
     /**
+     * @return string|null
+     */
+    public function getModelParams()
+    {
+        return $this->_getData(self::MODEL_PARAMS);
+    }
+
+    /**
+     * @param string $value|null
+     * @return $this
+     */
+    public function setModelParams($value)
+    {
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
+        return $this->setData(self::MODEL_PARAMS, $value);
+    }
+
+    /**
      * @return int
      */
     public function getTimestamp()
@@ -526,7 +550,7 @@ class Event extends AbstractModel implements EventInterface
     public function setTimestamp($value = null)
     {
         if (null === $value) {
-            $value = time();
+            $value = microtime(true);
         }
 
         return $this->setData(self::TIMESTAMP, $value);

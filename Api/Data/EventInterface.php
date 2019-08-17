@@ -17,6 +17,7 @@ interface EventInterface
     const VERSION = 'version';
     const PRICE_MODE = 'price_mode';
     const PRICELIST_SOURCE = 'pricelist_source';
+    const MODEL_PARAMS = 'model_params';
     const TIMESTAMP = 'timestamp';
     const LAST_ERROR = 'last_error';
 
@@ -156,6 +157,17 @@ interface EventInterface
      * @return $this
      */
     public function setPricelistSource($value);
+
+    /**
+     * @return string|null
+     */
+    public function getModelParams();
+
+    /**
+     * @param string $value|null
+     * @return $this
+     */
+    public function setModelParams($value);
 
     /**
      * @return int

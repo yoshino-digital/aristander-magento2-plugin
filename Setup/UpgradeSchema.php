@@ -100,8 +100,80 @@ class UpgradeSchema implements UpgradeSchemaInterface
             );
 
             // Clean DDL cache
+            $db->resetDdlCache($table);
+        }
+
+        if (version_compare($context->getVersion(), '1.3', '<')) {
+            // Upgrade to v1.3
+
+            $table = $setup->getTable('aai_event');
+
+            // Add model_params field
+            $db->addColumn(
+                $table,
+                'model_params',
+                [
+                    'type' => Table::TYPE_TEXT,
+                    'length' => 128,
+                    'nullable' => true,
+                    'comment' => 'Model params'
+                ]
+            );
+
+            // Modify timestamp column to decimal type
+            $db->modifyColumn(
+                $table,
+                'timestamp',
+                [
+                    'type' => Table::TYPE_DECIMAL,
+                    'length' => '21,3',
+                    'nullable' => false,
+                    'Event registration UNIX timestamp',
+                ]
+            );
+
+            // Clean DDL cache
+            $db->resetDdlCache($table);
+
+            // Update price_mode
+            $configPath = 'aai/price_import/price_mode';
+            $priceModeRename = [
+                'original' => 'fixed_original',
+                'alternative' => 'fixed_aristander',
+            ];
+
+            $table = $setup->getTable('core_config_data');
+
+            foreach ($priceModeRename as $form => $to) {
+                $db->update(
+                    $table,
+                    array('value' => $to),
+                    array(
+                        'path = ?' => $configPath,
+                        'value = ?' => $form,
+                    )
+                );
+            }
+
+            // Rename option
+            $db->update(
+                $table,
+                array('path' => 'aai/price/mode'),
+                array(
+                    'path = ?' => $configPath,
+                )
+            );
+            // Delete option
+            $db->delete(
+                $table,
+                array(
+                    'path = ?' => 'aai/price_import/enabled',
+                )
+            );
+
+            // Clean config cache
             $this->cacheManager->clean([
-                \Magento\Framework\DB\Adapter\DdlCache::TYPE_IDENTIFIER
+                \Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER
             ]);
         }
 
@@ -233,9 +305,16 @@ class UpgradeSchema implements UpgradeSchemaInterface
                     'Price-list source'
                 )
                 ->addColumn(
+                    'model_params',
+                    Table::TYPE_TEXT,
+                    128,
+                    ['nullable' => true],
+                    'Model params'
+                )
+                ->addColumn(
                     'timestamp',
-                    Table::TYPE_INTEGER,
-                    null,
+                    Table::TYPE_DECIMAL,
+                    '21,3',
                     ['nullable' => false],
                     'Event registration UNIX timestamp'
                 )

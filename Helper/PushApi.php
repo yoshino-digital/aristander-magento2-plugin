@@ -4,6 +4,8 @@ namespace AristanderAi\Aai\Helper;
 use AristanderAi\Aai\Model\Flag\AccessToken;
 use Magento\Framework\App\Helper\AbstractHelper;
 use Magento\Framework\App\Helper\Context;
+use Magento\Framework\Exception\AlreadyExistsException;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Flag\FlagResource;
 
 class PushApi extends AbstractHelper
@@ -30,16 +32,16 @@ class PushApi extends AbstractHelper
         parent::__construct($context);
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Reads access token from flags table and generates it if missing
      *
      * @return string
-     * @throws \Magento\Framework\Exception\AlreadyExistsException
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getAccessToken()
     {
         if (null === $this->accessTokenFlag->getId()) {
+            /** @noinspection PhpUnhandledExceptionInspection */
             $this->accessTokenFlag->loadSelf();
         }
 
@@ -47,6 +49,7 @@ class PushApi extends AbstractHelper
         if ('' == $result) {
             $result = bin2hex(openssl_random_pseudo_bytes(16));
             $this->accessTokenFlag->setFlagData($result);
+            /** @noinspection PhpUnhandledExceptionInspection */
             $this->flagResource->save($this->accessTokenFlag);
         }
 
