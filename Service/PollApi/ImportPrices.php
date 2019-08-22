@@ -117,12 +117,27 @@ class ImportPrices
             );
         }
 
-        $this->process($response->getStream());
+        $headers = $response->getHeaders();
+
+        // Decompress gzip compressed CSV if needed
+        $decompressStream = $headers->has('content-type')
+            && 'application/gzip' == $headers->get('content-type')->getFieldValue();
+        $stream = $decompressStream
+            ? fopen(
+                'compress.zlib://' . $response->getStreamName(),
+                'r'
+            )
+            : $response->getStream();
+
+        $this->process($stream);
+
+        if ($decompressStream) {
+            fclose($stream);
+        }
 
         // Set model params
-        $header = $response->getHeaders()->get('model_params');
-        if ($header) {
-            $value = $header->getFieldValue();
+        if ($headers->has('model_params')) {
+            $value = $headers->get('model_params')->getFieldValue();
             $this->logger->debug("Setting model params to '{$value}'");
             $this->helperPrice->setModelParams($value);
         }
