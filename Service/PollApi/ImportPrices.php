@@ -31,10 +31,7 @@ class ImportPrices
         'grouped',
     ];
 
-    private $priceModeMap = [
-        'aristander' => 'alternative',
-        'default' => 'original',
-    ];
+    private $alternativePriceProductSet;
 
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
@@ -151,6 +148,11 @@ class ImportPrices
      */
     private function process($stream)
     {
+        // Get existing alternative prices
+        $this->alternativePriceProductSet = array_flip(
+            $this->getAlternativePriceProductIds()
+        );
+
         $this->productCollection = $this->productCollectionFactory->create();
 
         rewind($stream);
@@ -217,17 +219,42 @@ class ImportPrices
                 continue;
             }
 
+            if ($this->productCollection->getItemById($product->getId())) {
+                $this->logger->warning(__("Warning at line %1: Product #%2 '%3' is already processed",
+                    [
+                        $lineNo,
+                        $product->getId(),
+                        $product->getId(),
+                    ]
+                ));
+                continue;
+            }
+
             $price = $data['price'];
             $this->applyPriceToProduct($price, $product);
+        }
 
-            if ('configurable' == $product->getTypeId()) {
-                $childProducts = $this->modelProductConfigurable
-                    ->getUsedProducts($product);
-                foreach ($childProducts as $childProduct) {
-                    $this->applyPriceToProduct($price, $childProduct);
+        if ($this->alternativePriceProductSet) {
+            $this->logger->debug('Removing alternative prices for products not listed in import');
+            foreach (array_keys($this->alternativePriceProductSet) as $id) {
+                // Was already handled (as a child product)
+                if ($this->productCollection->getItemById($id)) {
+                    continue;
                 }
+                // Load product
+                /** @var Product $product */
+                $product = $this->productRepository->getById($id);
+                if (!$product->getId()) {
+                    // ID not found - this normally shouldn't happen
+                    continue;
+                }
+
+                $this->removeAlternativePriceFromProduct($product);
             }
         }
+
+        // Free memory
+        $this->alternativePriceProductSet = null;
 
         if ($this->productCollection->count()) {
             $connection = $this->resource->getConnection();
@@ -292,32 +319,6 @@ class ImportPrices
     }
 
     /**
-     * @param float $price
-     * @param ProductInterface $product
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Exception
-     */
-    private function applyPriceToProduct($price, ProductInterface $product)
-    {
-        /** @var Product $product */
-        $oldPrice = $this->formatPrice(
-            $this->helperPrice->getProductAlternativePrice($product)
-        );
-        $price = $this->formatPrice($price);
-
-        if ($oldPrice !== $price) {
-            if (null !== $price) {
-                $this->logger->debug("Changing alternative price for product #{$product->getId()} '{$product->getSku()}' from {$oldPrice} to {$price}");
-            } else {
-                $this->logger->debug("Removing alternative price for product #{$product->getId()} '{$product->getSku()}'");
-            }
-
-            $this->helperPrice->setProductAlternativePrice($product, $price);
-            $this->productCollection->addItem($product);
-        }
-    }
-
-    /**
      * Converts price value to string and normalizes it for comparison
      *
      * @param float|string|null $price
@@ -338,20 +339,111 @@ class ImportPrices
         return $price;
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Initializes HTTP client object
      *
      * @throws HttpClientCreator\NotConfiguredException
      * @throws HttpClientCreator\Exception
-     * @throws \Magento\Framework\Exception\FileSystemException
-     * @throws \Magento\Framework\Exception\ValidatorException
      */
     private function initHttpClient()
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->httpClient = $this->httpClientCreator->create([
             'url' => $this->helperData->getConfigValue('api/import_prices')
                 ?: $this->endPointUrl,
             'tmpStream' => true,
         ]);
+    }
+
+    /**
+     * Returns array of product IDs with assigned alternative prices
+     */
+    private function getAlternativePriceProductIds()
+    {
+        $db = $this->resource->getConnection();
+        $select = $db->select()
+            ->from($this->resource->getTableName(
+                'catalog_product_entity_tier_price'
+            ))
+            ->reset('columns')
+            ->columns(array('entity_id'))
+            ->where(
+                'customer_group_id = ?',
+                $this->helperPrice->getCustomerGroupId()
+            )
+            ->where('website_id = ?', 0);
+
+        return $db->fetchCol($select);
+    }
+
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * @param float $price
+     * @param ProductInterface $product
+     */
+    private function applyPriceToProduct($price, ProductInterface $product)
+    {
+        /** @var Product $product */
+
+        unset($this->alternativePriceProductSet[$product->getId()]);
+
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $oldPrice = $this->formatPrice(
+            $this->helperPrice->getProductAlternativePrice($product)
+        );
+        $price = $this->formatPrice($price);
+
+        if ($oldPrice !== $price) {
+            if (null !== $price) {
+                $this->logger->debug("Changing alternative price for product #{$product->getId()} '{$product->getSku()}' from {$oldPrice} to {$price}");
+            } else {
+                $this->logger->debug("Removing alternative price for product #{$product->getId()} '{$product->getSku()}'");
+            }
+
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->helperPrice->setProductAlternativePrice($product, $price);
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->productCollection->addItem($product);
+        }
+
+        if ('configurable' == $product->getTypeId()) {
+            if (null !== $price) {
+                $this->logger->debug("Changing alternative prices for child products of configurable product #{$product->getId()} '{$product->getSku()}' to {$price}");
+            } else {
+                $this->logger->debug("Removing alternative prices for child products of configurable product #{$product->getId()} '{$product->getSku()}'");
+            }
+
+            $childProducts = $this->modelProductConfigurable
+                ->getUsedProducts($product);
+            foreach ($childProducts as $childProduct) {
+                $this->applyPriceToProduct($price, $childProduct);
+            }
+        }
+    }
+
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * @param ProductInterface $product
+     */
+    private function removeAlternativePriceFromProduct(ProductInterface $product)
+    {
+        /** @var Product $product */
+
+        $this->logger->debug("Removing alternative price for product #{$product->getId()} '{$product->getSku()}'");
+
+        $this->helperPrice->setProductAlternativePrice($product, null);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->productCollection->addItem($product);
+
+        if ('configurable' == $product->getTypeId()) {
+            $this->logger->debug("Removing alternative prices for child products of configurable product #{$product->getId()} '{$product->getSku()}'");
+            $childProducts = $this->modelProductConfigurable
+                ->getUsedProducts(null, $product);
+            /** @var Product $childProduct */
+            foreach ($childProducts as $childProduct) {
+                $this->removeAlternativePriceFromProduct($childProduct);
+            }
+        }
     }
 }

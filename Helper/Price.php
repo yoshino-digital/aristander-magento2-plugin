@@ -222,12 +222,12 @@ class Price extends AbstractHelper
     // Product price management
     //
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Finds an index of group price used to apply alternative price
      *
      * @param Product $product
      * @return int|null
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getProductAlternativePriceKey($product)
     {
@@ -235,6 +235,7 @@ class Price extends AbstractHelper
 
         if ($prices === null) {
             if ($attribute = $this->productResource->getAttribute('tier_price')) {
+                /** @noinspection PhpUnhandledExceptionInspection */
                 $attribute->getBackend()->afterLoad($product);
                 $prices = $product->getData('tier_price');
             }
@@ -279,7 +280,6 @@ class Price extends AbstractHelper
      * @param Product $product
      * @param $value
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function setProductAlternativePrice(Product $product, $value) 
     {
@@ -315,7 +315,6 @@ class Price extends AbstractHelper
      *
      * @param Product $product
      * @return $this
-     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function unsetProductAlternativePrice(Product $product)
     {
@@ -366,16 +365,14 @@ class Price extends AbstractHelper
         return $this->customerGroupCode;
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * @return int
-     * @throws \Magento\Framework\Exception\InputException
-     * @throws \Magento\Framework\Exception\LocalizedException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
     public function getCustomerGroupId()
     {
         if (null === $this->customerGroupId) {
+            /** @noinspection PhpUnhandledExceptionInspection */
             $group = $this->initCustomerGroup();
             $this->customerGroupId = $group->getId();
         }
