@@ -153,7 +153,7 @@ class Price extends AbstractHelper
      */
     public function getMode()
     {
-        return $this->helperData->getConfigValue('price_import/price_mode');
+        return $this->helperData->getConfigValue('price/mode');
     }
 
     /**
@@ -169,7 +169,7 @@ class Price extends AbstractHelper
         }
 
         $this->helperData->setConfigValue(
-            'price_import/price_mode',
+            'price/mode',
             $value
         );
 
