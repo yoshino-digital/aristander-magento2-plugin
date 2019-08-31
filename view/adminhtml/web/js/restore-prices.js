@@ -13,12 +13,8 @@ define([
 
         var restorePricesMap = [
             {
-                selector: '#aai_price_import_price_mode',
+                selector: '#aai_price_price_mode',
                 value: 'original'
-            },
-            {
-                selector: '#aai_price_import_enabled',
-                value: '0'
             }
         ];
 

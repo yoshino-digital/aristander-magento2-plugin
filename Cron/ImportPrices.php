@@ -32,7 +32,7 @@ class ImportPrices
     /**
      * Implements price import cron job
      *
-     * @throws \AristanderAi\Aai\Service\ImportPrices\Exception
+     * @throws \AristanderAi\Aai\Service\PollApi\ImportPrices\Exception
      */
     public function execute()
     {

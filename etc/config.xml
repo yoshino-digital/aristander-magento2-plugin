@@ -10,10 +10,9 @@
                 <order_enabled>1</order_enabled>
                 <user_creation_enabled>1</user_creation_enabled>
             </event_tracking>
-            <price_import>
-                <price_mode>original</price_mode>
-                <enabled>1</enabled>
-            </price_import>
+            <price>
+                <mode>original</mode>
+            </price>
         </aai>
     </default>
 </config>

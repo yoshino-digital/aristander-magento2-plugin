@@ -121,20 +121,7 @@ class Data extends AbstractHelper
     public function isPriceImportEnabled()
     {
         return $this->isModuleEnabled()
-            && $this->getConfigValue('price_import/enabled');
-    }
-
-    /**
-     * Sets price import enabled flag
-     *
-     * @param $value bool
-     * @return $this;
-     */
-    public function setPriceImportEnabled($value)
-    {
-        $this->setConfigValue('price_import/enabled', $value? 1 : 0);
-
-        return $this;
+            && '' != $this->getConfigValue('general/api_key');
     }
 
     /**
