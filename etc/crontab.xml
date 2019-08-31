@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Cron:etc/crontab.xsd">
     <group id="default">
-        <job name="aristander_ai_aai_send_events" instance="AristanderAi\Aai\Cron\SendEvents" method="execute">
+        <job name="aristander_ai_aai_send_events"
+             instance="AristanderAi\Aai\Cron\SendEvents"
+             method="execute"
+        >
             <schedule>*/5 * * * *</schedule>
         </job>
-        <job name="aristander_ai_aai_import_prices" instance="AristanderAi\Aai\Cron\ImportPrices" method="execute">
-            <schedule>0 * * * *</schedule>
+        <job name="aristander_ai_aai_update_prices"
+             instance="AristanderAi\Aai\Cron\UpdatePrices"
+             method="execute"
+        >
+            <schedule>*/30 * * * *</schedule>
         </job>
     </group>
 </config>

@@ -25,7 +25,7 @@ class CacheIdentifierPlugin
      */
     public function afterGetValue(Identifier $subject, $result)
     {
-        if ($this->helperPrice->getAlternativePriceFlag()) {
+        if ($this->helperPrice->getAlternativePriceSwitch()) {
             $result .= '-alt_price';        }
 
         return $result;

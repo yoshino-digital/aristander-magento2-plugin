@@ -1,6 +1,7 @@
 <?php
 namespace AristanderAi\Aai\Helper;
 
+use AristanderAi\Aai\Model\Flag\AlternativePrice;
 use AristanderAi\Aai\Model\Flag\ModelParams;
 use Jaybizzle\CrawlerDetect\CrawlerDetect;
 use Magento\Catalog\Model\Product;
@@ -35,7 +36,7 @@ class Price extends AbstractHelper
     private $customerGroupId;
 
     /** @var bool|null */
-    private $alternativePriceFlag;
+    private $alternativePriceSwitch;
 
     /** @var Data */
     private $helperData;
@@ -61,6 +62,8 @@ class Price extends AbstractHelper
     /** @var ModelParams */
     private $modelParamsFlag;
 
+    private $alternativePriceFlag;
+
     /** @var FlagResource */
     private $flagResource;
 
@@ -74,6 +77,7 @@ class Price extends AbstractHelper
         FilterBuilder $filterBuilder,
         ProductResource $productResource,
         ModelParams $modelParamsFlag,
+        AlternativePrice $alternativePriceFlag,
         FlagResource $flagResource
     ) {
         $this->helperData = $helperData;
@@ -84,6 +88,7 @@ class Price extends AbstractHelper
         $this->filterBuilder = $filterBuilder;
         $this->productResource = $productResource;
         $this->modelParamsFlag = $modelParamsFlag;
+        $this->alternativePriceFlag = $alternativePriceFlag;
         $this->flagResource = $flagResource;
 
         parent::__construct($context);
@@ -98,7 +103,7 @@ class Price extends AbstractHelper
      */
     public function initProductPrice(Product $product)
     {
-        if (!$this->getAlternativePriceFlag()) {
+        if (!$this->getAlternativePriceSwitch()) {
             return $this;
         }
 
@@ -128,7 +133,7 @@ class Price extends AbstractHelper
      */
     public function initCustomerSession(Session $session)
     {
-        if (!$this->getAlternativePriceFlag()) {
+        if (!$this->getAlternativePriceSwitch()) {
             if ($this->getCustomerGroupId() == $session->getData('customer_group_id')) {
                 $session->setCustomerGroupId(null);
             }
@@ -177,13 +182,13 @@ class Price extends AbstractHelper
      * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
      * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
-    public function getAlternativePriceFlag()
+    public function getAlternativePriceSwitch()
     {
-        if (null === $this->alternativePriceFlag) {
-            $this->initAlternativePriceFlag();
+        if (null === $this->alternativePriceSwitch) {
+            $this->initAlternativePriceSwitch();
         }
 
-        return $this->alternativePriceFlag;
+        return $this->alternativePriceSwitch;
     }
 
     /**
@@ -353,6 +358,25 @@ class Price extends AbstractHelper
         return $this;
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * Updates price-list source flag for time-series mode with a random value
+     *
+     * @return $this
+     */
+    public function updateAlternativePriceFlag()
+    {
+        $this->loadAlternativePriceFlag();
+        $value = rand(0, 1);
+        $this->_logger->debug("Updating time-series price-list source flag with new value: {$value}.");
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->alternativePriceFlag->setFlagData($value);
+        /** @noinspection PhpUnhandledExceptionInspection */
+        $this->flagResource->save($this->alternativePriceFlag);
+
+        return $this;
+    }
+
     //
     // Getters and setters
     //
@@ -425,17 +449,17 @@ class Price extends AbstractHelper
      * @throws \Magento\Framework\Stdlib\Cookie\CookieSizeLimitReachedException
      * @throws \Magento\Framework\Stdlib\Cookie\FailureToSendException
      */
-    private function initAlternativePriceFlag()
+    private function initAlternativePriceSwitch()
     {
         switch ($this->getMode()) {
             case 'fixed_aristander':
-                $this->alternativePriceFlag = true;
+                $this->alternativePriceSwitch = true;
                 break;
 
             case 'split':
                 $crawlerDetect = new CrawlerDetect();
                 if ($crawlerDetect->isCrawler()) {
-                    $this->alternativePriceFlag = false;
+                    $this->alternativePriceSwitch = false;
                     break;
                 }
 
@@ -462,13 +486,25 @@ class Price extends AbstractHelper
                     ])
                 );
 
-                $this->alternativePriceFlag = 1 == $version;
+                $this->alternativePriceSwitch = 1 == $version;
+
+                break;
+
+            case 'timeseries':
+                $this->loadAlternativePriceFlag();
+                $version = $this->alternativePriceFlag->getFlagData();
+                if (null === $version) {
+                    $this->updateAlternativePriceFlag();
+                    $version = $this->alternativePriceFlag->getFlagData();
+                }
+
+                $this->alternativePriceSwitch = 1 == $version;
 
                 break;
 
             case 'fixed_original':
             default:
-                $this->alternativePriceFlag = false;
+                $this->alternativePriceSwitch = false;
                 break;
         }
     }
@@ -481,5 +517,15 @@ class Price extends AbstractHelper
         }
 
         return $this->modelParamsFlag;
+    }
+
+    private function loadAlternativePriceFlag()
+    {
+        if (null === $this->alternativePriceFlag->getId()) {
+            /** @noinspection PhpUnhandledExceptionInspection */
+            $this->alternativePriceFlag->loadSelf();
+        }
+
+        return $this->alternativePriceFlag;
     }
 }

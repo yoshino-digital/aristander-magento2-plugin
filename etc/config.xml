@@ -12,6 +12,7 @@
             </event_tracking>
             <price>
                 <mode>fixed_original</mode>
+                <update_interval>30</update_interval>
             </price>
         </aai>
     </default>
