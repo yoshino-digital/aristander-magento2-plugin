@@ -32,6 +32,10 @@
                     <label>Price Mode</label>
                     <source_model>AristanderAi\Aai\Model\Config\Source\PriceMode</source_model>
                 </field>
+                <field id="update_interval" translate="label" type="select" sortOrder="2" showInDefault="1" showInWebsite="0" showInStore="0">
+                    <label>Update Interval</label>
+                    <source_model>AristanderAi\Aai\Model\Config\Source\UpdateInterval</source_model>
+                </field>
                 <field id="restore_prices" translate="label" sortOrder="3" showInDefault="1" showInWebsite="0" showInStore="0">
                     <frontend_model>AristanderAi\Aai\Block\Adminhtml\System\Config\RestorePrices</frontend_model>
                 </field>
