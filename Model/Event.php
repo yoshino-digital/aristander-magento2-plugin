@@ -536,7 +536,7 @@ class Event extends AbstractModel implements EventInterface
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getTimestamp()
     {
@@ -544,7 +544,7 @@ class Event extends AbstractModel implements EventInterface
     }
 
     /**
-     * @param int|null $value
+     * @param float|null $value
      * @return $this
      */
     public function setTimestamp($value = null)

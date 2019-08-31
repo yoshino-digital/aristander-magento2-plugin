@@ -319,16 +319,16 @@ class SendEvents
         $connection->commit();
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
     /**
      * Initializes HTTP client object
      *
      * @throws HttpClientCreator\NotConfiguredException
      * @throws HttpClientCreator\Exception
-     * @throws FileSystemException
-     * @throws \Magento\Framework\Exception\ValidatorException
      */
     private function initHttpClient()
     {
+        /** @noinspection PhpUnhandledExceptionInspection */
         $this->httpClient = $this->httpClientCreator->create([
             'url' => $this->helperData->getConfigValue('api/send_events')
                 ?: $this->endPointUrl,
@@ -337,8 +337,6 @@ class SendEvents
 
     /**
      * @return array
-     * @throws AlreadyExistsException
-     * @throws LocalizedException
      */
     private function getPingEventData()
     {

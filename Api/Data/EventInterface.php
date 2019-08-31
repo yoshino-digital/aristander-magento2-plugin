@@ -170,12 +170,12 @@ interface EventInterface
     public function setModelParams($value);
 
     /**
-     * @return int
+     * @return float
      */
     public function getTimestamp();
 
     /**
-     * @param int|null $value
+     * @param float|null $value
      * @return $this
      */
     public function setTimestamp($value = null);
