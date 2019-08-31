@@ -428,7 +428,7 @@ class Price extends AbstractHelper
     private function initAlternativePriceFlag()
     {
         switch ($this->getMode()) {
-            case 'alternative':
+            case 'fixed_aristander':
                 $this->alternativePriceFlag = true;
                 break;
 
@@ -466,7 +466,7 @@ class Price extends AbstractHelper
 
                 break;
 
-            case 'original':
+            case 'fixed_original':
             default:
                 $this->alternativePriceFlag = false;
                 break;

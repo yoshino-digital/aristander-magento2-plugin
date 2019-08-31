@@ -12,16 +12,20 @@ class PriceMode implements \Magento\Framework\Option\ArrayInterface
     {
         return [
             [
-                'value' => 'original',
-                'label' => __('Original prices'),
+                'value' => 'fixed_original',
+                'label' => __('Fixed - Original'),
             ],
             [
-                'value' => 'alternative',
-                'label' => __('Aristander prices'),
+                'value' => 'fixed_aristander',
+                'label' => __('Fixed - Aristander'),
+            ],
+            [
+                'value' => 'timeseries',
+                'label' => __('Timeseries'),
             ],
             [
                 'value' => 'split',
-                'label' => __('A/B price testing'),
+                'label' => __('Split'),
             ],
         ];
     }

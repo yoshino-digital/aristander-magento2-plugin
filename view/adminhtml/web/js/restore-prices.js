@@ -14,7 +14,7 @@ define([
         var restorePricesMap = [
             {
                 selector: '#aai_price_price_mode',
-                value: 'original'
+                value: 'fixed_original'
             }
         ];
 

@@ -11,7 +11,7 @@
                 <user_creation_enabled>1</user_creation_enabled>
             </event_tracking>
             <price>
-                <mode>original</mode>
+                <mode>fixed_original</mode>
             </price>
         </aai>
     </default>
