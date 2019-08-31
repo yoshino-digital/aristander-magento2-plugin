@@ -4,6 +4,7 @@ namespace AristanderAi\Aai\Setup;
 use AristanderAi\Aai\Helper\Data;
 use AristanderAi\Aai\Helper\Price;
 use Magento\Eav\Setup\EavSetupFactory;
+use Magento\Framework\App\Cache\Manager;
 use Magento\Framework\App\State;
 use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
@@ -30,6 +31,9 @@ class UpgradeData implements UpgradeDataInterface
     /** @var IndexerFactory */
     private $indexerFactory;
 
+    /** @var Manager */
+    private $cacheManager;
+
     /**
      * UpgradeData constructor.
      * @param EavSetupFactory $eavSetupFactory
@@ -37,19 +41,22 @@ class UpgradeData implements UpgradeDataInterface
      * @param Price $helperPrice
      * @param State $appState
      * @param IndexerFactory $indexerFactory
+     * @param Manager $cacheManager
      */
     public function __construct(
         EavSetupFactory $eavSetupFactory,
         Data $helperData,
         Price $helperPrice,
         State $appState,
-        IndexerFactory $indexerFactory
+        IndexerFactory $indexerFactory,
+        Manager $cacheManager
     ) {
         $this->eavSetupFactory = $eavSetupFactory;
         $this->helperData = $helperData;
         $this->helperPrice = $helperPrice;
         $this->appState = $appState;
         $this->indexerFactory = $indexerFactory;
+        $this->cacheManager = $cacheManager;
     }
 
     /**
@@ -69,6 +76,8 @@ class UpgradeData implements UpgradeDataInterface
             $this->install($setup, $context);
             return;
         }
+
+        $db = $setup->getConnection();
 
         if (version_compare($context->getVersion(), '1.2', '<')) {
             // Upgrade to v1.2
@@ -93,6 +102,54 @@ class UpgradeData implements UpgradeDataInterface
             $process = $this->indexerFactory->create();
             $process->load('catalog_product_price');
             $process->reindexAll();
+
+            $setup->endSetup();
+        }
+
+        if (version_compare($context->getVersion(), '1.3', '<')) {
+            // Upgrade to v1.3
+            $setup->startSetup();
+
+            // Update price_mode
+            $configPath = 'aai/price_import/price_mode';
+            $priceModeRename = [
+                'original' => 'fixed_original',
+                'alternative' => 'fixed_aristander',
+            ];
+
+            $table = $setup->getTable('core_config_data');
+
+            foreach ($priceModeRename as $form => $to) {
+                $db->update(
+                    $table,
+                    array('value' => $to),
+                    array(
+                        'path = ?' => $configPath,
+                        'value = ?' => $form,
+                    )
+                );
+            }
+
+            // Rename option
+            $db->update(
+                $table,
+                array('path' => 'aai/price/mode'),
+                array(
+                    'path = ?' => $configPath,
+                )
+            );
+            // Delete option
+            $db->delete(
+                $table,
+                array(
+                    'path = ?' => 'aai/price_import/enabled',
+                )
+            );
+
+            // Clean config cache
+            $this->cacheManager->clean([
+                \Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER
+            ]);
 
             $setup->endSetup();
         }

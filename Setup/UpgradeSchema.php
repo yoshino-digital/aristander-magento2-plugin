@@ -134,47 +134,6 @@ class UpgradeSchema implements UpgradeSchemaInterface
 
             // Clean DDL cache
             $db->resetDdlCache($table);
-
-            // Update price_mode
-            $configPath = 'aai/price_import/price_mode';
-            $priceModeRename = [
-                'original' => 'fixed_original',
-                'alternative' => 'fixed_aristander',
-            ];
-
-            $table = $setup->getTable('core_config_data');
-
-            foreach ($priceModeRename as $form => $to) {
-                $db->update(
-                    $table,
-                    array('value' => $to),
-                    array(
-                        'path = ?' => $configPath,
-                        'value = ?' => $form,
-                    )
-                );
-            }
-
-            // Rename option
-            $db->update(
-                $table,
-                array('path' => 'aai/price/mode'),
-                array(
-                    'path = ?' => $configPath,
-                )
-            );
-            // Delete option
-            $db->delete(
-                $table,
-                array(
-                    'path = ?' => 'aai/price_import/enabled',
-                )
-            );
-
-            // Clean config cache
-            $this->cacheManager->clean([
-                \Magento\Framework\App\Cache\Type\Config::TYPE_IDENTIFIER
-            ]);
         }
 
         $setup->endSetup();
