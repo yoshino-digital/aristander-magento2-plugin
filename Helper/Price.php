@@ -62,6 +62,7 @@ class Price extends AbstractHelper
     /** @var ModelParams */
     private $modelParamsFlag;
 
+    /** @var AlternativePrice */
     private $alternativePriceFlag;
 
     /** @var FlagResource */
