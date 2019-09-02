@@ -510,6 +510,10 @@ class Price extends AbstractHelper
         }
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * @return ModelParams
+     */
     private function loadModelParamsFlag()
     {
         if (null === $this->modelParamsFlag->getId()) {
@@ -520,6 +524,10 @@ class Price extends AbstractHelper
         return $this->modelParamsFlag;
     }
 
+    /** @noinspection PhpDocMissingThrowsInspection */
+    /**
+     * @return AlternativePrice
+     */
     private function loadAlternativePriceFlag()
     {
         if (null === $this->alternativePriceFlag->getId()) {
