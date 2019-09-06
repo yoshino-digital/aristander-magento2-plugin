@@ -100,14 +100,9 @@ class Page extends Action
             throw new ValidationException("Parameter 'details' is missing or not array");
         }
 
-        $result = base64_decode($result);
+        $result = json_decode($result, true);
         if (false === $result) {
             throw new ValidationException("Error decoding 'details' parameter");
-        }
-
-        $result = unserialize($result);
-        if (!is_array($result)) {
-            throw new ValidationException("Error extracting 'details' parameter");
         }
 
         return $result;
@@ -128,11 +123,10 @@ class Page extends Action
             }
 
             foreach ($products as $key => $value) {
-                $value = base64_decode($value);
+                $value = json_decode($value, true);
                 if (false === $value) {
                     throw new ValidationException("Error decoding product #{$key}");
                 }
-                $value = unserialize($value);
                 if (!is_array($value)) {
                     throw new ValidationException("Error extracting product #{$key}");
                 }

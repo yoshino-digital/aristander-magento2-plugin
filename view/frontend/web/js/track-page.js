@@ -4,13 +4,13 @@ define ([
     return function (info) {
         var products = [];
         $('script[type="text/x-aristander_ai_aai-page-view-product"]').each(function() {
-            products.push($(this).html());
+            products.push($(this).text());
         });
 
         $.ajax(info.url, {
             method: 'post',
             data: {
-                details: info.details,
+                details: JSON.stringify(info.details),
                 products: products
             },
             dataType: 'json',

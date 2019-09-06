@@ -10,10 +10,10 @@ if (!$event) {
 <script type="text/x-magento-init">
 {
     "*": {
-        "AristanderAi_Aai/js/track-page": {
-            "url": "<?= $block->getTrackUrl() ?>",
-            "details": "<?= base64_encode(serialize($event->getDetails())) ?>"
-        }
+        "AristanderAi_Aai/js/track-page": <?= json_encode([
+            'url' => $block->getTrackUrl(),
+            'details' => $event->getDetails(),
+        ]) ?>
     }
 }
 </script>
