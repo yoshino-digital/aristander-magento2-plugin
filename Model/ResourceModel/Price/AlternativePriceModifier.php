@@ -1,4 +1,5 @@
 <?php
+
 namespace AristanderAi\Aai\Model\ResourceModel\Price;
 
 use AristanderAi\Aai\Helper\Price;
@@ -6,7 +7,7 @@ use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\IndexTableStructur
 use Magento\Catalog\Model\ResourceModel\Product\Indexer\Price\PriceModifierInterface;
 use Magento\Framework\App\ResourceConnection;
 
-class AlternativePriceModifier implements PriceModifierInterface
+class AlternativePriceModifier //implements PriceModifierInterface - removed because interface declaration is not compatible with PHP7.0
 {
     /** @var Price */
     private $helperPrice;
@@ -39,7 +40,7 @@ class AlternativePriceModifier implements PriceModifierInterface
      * @throws \Magento\Framework\Exception\NoSuchEntityException
      * @throws \Magento\Framework\Exception\State\InvalidTransitionException
      */
-    public function modifyPrice(IndexTableStructure $priceTable, array $entityIds = []) : void
+    public function modifyPrice(IndexTableStructure $priceTable, array $entityIds = [])// : void - removed because PHP7.0 do not support void type
     {
         $updateFields = [
             $priceTable->getMinPriceField(),
