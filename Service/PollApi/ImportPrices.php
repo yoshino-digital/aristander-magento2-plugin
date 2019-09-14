@@ -117,9 +117,9 @@ class ImportPrices
         $headers = $response->getHeaders();
 
         // Decompress gzip compressed CSV if needed
-        $decompressStream = $headers->has('content-type')
+        $isCompressed = $headers->has('content-type')
             && 'application/gzip' == $headers->get('content-type')->getFieldValue();
-        $stream = $decompressStream
+        $stream = $isCompressed
             ? fopen(
                 'compress.zlib://' . $response->getStreamName(),
                 'r'
@@ -128,7 +128,7 @@ class ImportPrices
 
         $this->process($stream);
 
-        if ($decompressStream) {
+        if ($isCompressed) {
             fclose($stream);
         }
 
