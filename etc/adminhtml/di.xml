@@ -11,5 +11,4 @@
         <plugin name="aristander_ai_aai_adminhtml_customer_group_groupactions"
                 type="AristanderAi\Aai\Plugin\Adminhtml\Customer\Group\GroupActionsPlugin" />
     </type>
-    s::prepareDataSource
 </config>
