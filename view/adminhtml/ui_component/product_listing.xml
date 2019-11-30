@@ -1,12 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
     <columns name="product_columns">
-        <column name="aai_alternative_price" class="Magento\Catalog\Ui\Component\Listing\Columns\Price" sortOrder="71">
+        <column name="aai_alternative_price"
+                class="AristanderAi\Aai\Ui\Component\Listing\Columns\AlternativePrice"
+                component="AristanderAi_Aai/js/product/grid/cell/price"
+                sortOrder="71"
+        >
             <settings>
                 <addField>true</addField>
                 <filter>textRange</filter>
                 <label translate="true">Aristander Price</label>
+                <bodyTmpl>AristanderAi_Aai/product/grid/cell/alternative-price.html</bodyTmpl>
             </settings>
         </column>
+        <column name="price"
+                component="AristanderAi_Aai/js/product/grid/cell/price"
+                ></column>
     </columns>
 </listing>
