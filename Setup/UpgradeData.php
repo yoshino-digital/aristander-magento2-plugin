@@ -153,6 +153,23 @@ class UpgradeData implements UpgradeDataInterface
 
             $setup->endSetup();
         }
+
+        if (version_compare($context->getVersion(), '1.3.1', '<')) {
+            // Upgrade to v1.3.1
+            $setup->startSetup();
+
+            $table = $setup->getTable('ui_bookmark');
+
+            // Delete bookmark to reset column order
+            $db->delete(
+                $table,
+                array(
+                    'namespace = ?' => 'product_listing',
+                )
+            );
+
+            $setup->endSetup();
+        }
     }
 
     /**

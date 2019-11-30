@@ -2,7 +2,7 @@
   "name": "aristanderai/aai",
   "description": "AristanderAI learns what your consumers are willing to pay and adjusts prices for you. It uses the latest advances in machine learning to boost your shop revenue and net profit.",
   "type": "magento2-module",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "require": {
     "php": ">=5.5.0",
     "ext-json": "*",
