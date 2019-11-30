@@ -10,7 +10,6 @@
                 <addField>true</addField>
                 <filter>textRange</filter>
                 <label translate="true">Aristander Price</label>
-                <bodyTmpl>AristanderAi_Aai/product/grid/cell/alternative-price.html</bodyTmpl>
             </settings>
         </column>
         <column name="price"

@@ -50,7 +50,7 @@ class AlternativePrice extends Price
 
             foreach ($dataSource['data']['items'] as & $item) {
 
-                $item['activePrice'] = $preferAlternative && !empty($item['aai_alternative_price'])
+                $item['activePriceKey'] = $preferAlternative && !empty($item['aai_alternative_price'])
                     ? 'alternative'
                     : 'original';
             }
