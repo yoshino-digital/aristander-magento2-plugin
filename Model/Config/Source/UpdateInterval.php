@@ -23,6 +23,14 @@ class UpdateInterval implements \Magento\Framework\Option\ArrayInterface
                 'value' => '120',
                 'label' => __('2 hours'),
             ],
+            [
+                'value' => '1440',
+                'label' => __('Once a day'),
+            ],
+            [
+                'value' => '10080',
+                'label' => __('Once a week'),
+            ]
         ];
     }
 }

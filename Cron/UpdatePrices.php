@@ -9,8 +9,11 @@ use /** @noinspection PhpUndefinedClassInspection */
 
 class UpdatePrices
 {
-    /** @var int Minimum interval and interval step in minutes */
+    /** @var int Minimum interval, interval step and cron job frequency in minutes */
     private $intervalTick = 30;
+
+    /** @var int Maximum interval in minutes */
+    private $maxInterval = 10080; //week
 
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
@@ -52,15 +55,15 @@ class UpdatePrices
             'price/update_interval'
         );
         if ($updateInterval != $this->intervalTick) {
-            // Number of granular intervals passed since midnight
-            $ticksSinceMidnight = floor(
-                (time() % 86400)
+            // Number of granular intervals passed since max interval start
+            $ticksSinceMaxIntervalStart = floor(
+                (time() % ($this->maxInterval * 60))
                 /
                 ($this->intervalTick * 60)
             );
             $updateIntervalTicks = $updateInterval / $this->intervalTick;
 
-            $tickSkipped = $ticksSinceMidnight % $updateIntervalTicks;
+            $tickSkipped = $ticksSinceMaxIntervalStart % $updateIntervalTicks;
             if (0 != $tickSkipped) {
                 $this->logger->debug("Aristander.ai price update is configured to run once per {$updateIntervalTicks} calls. Skipping call {$tickSkipped} of {$updateIntervalTicks}.");
                 return;
