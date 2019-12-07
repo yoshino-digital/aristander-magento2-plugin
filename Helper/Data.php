@@ -183,4 +183,28 @@ class Data extends AbstractHelper
 
         return (string) $this->priceCurrency->round($value);
     }
+
+    //
+    // Mass settings export
+    //
+
+    public function getConfigKeys()
+    {
+        return [
+            'general/api_key',
+            'event_tracking/enabled',
+            'price/mode',
+            'price/update_interval',
+        ];
+    }
+
+    public function getConfigValues()
+    {
+        $result = [];
+        foreach ($this->getConfigKeys() as $path) {
+            $result[$path] = $this->getConfigValue($path);
+        }
+
+        return $result;
+    }
 }

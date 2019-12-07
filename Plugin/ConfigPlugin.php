@@ -33,16 +33,17 @@ class ConfigPlugin
             return $proceed();
         }
 
-        if ('' != $subject->getConfigDataValue('aai/general/api_key')) {
-            // Already configured
-            return $proceed();
-        }
+        $oldConfig = $this->helperData->getConfigValues();
 
         $result = $proceed();
 
-        if ('' != $subject->getConfigDataValue('aai/general/api_key')) {
-            // Change to non-empty
-            $this->sendEvents->ping();
+        $config = $this->helperData->getConfigValues();
+
+        if (array_diff_assoc($oldConfig, $config)
+            && '' != $config['general/api_key']
+        ) {
+            // Any change detected
+            $this->sendEvents->sendSettingsChangedEvent();
         }
 
         return $result;

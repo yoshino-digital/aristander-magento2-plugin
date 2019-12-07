@@ -155,7 +155,7 @@ class SendEvents
             }
         } else {
             $this->logger->debug("No pending events found so just pinging API");
-            $this->sendPingEvent();
+            $this->sendEvents([$this->getPingEventData()]);
         }
 
         $this->logger->debug('Cleaning old synced events');
@@ -165,11 +165,9 @@ class SendEvents
     }
 
     /**
-     * Sends immediate ping event
-     * (consider a refactoring to move it out of cron task class as it's not
-     * really belong here)
+     * Sends immediate settings changed event
      */
-    public function ping()
+    public function sendSettingsChangedEvent()
     {
         try {
             $this->initHttpClient();
@@ -179,7 +177,7 @@ class SendEvents
         }
 
         try {
-            $this->sendPingEvent();
+            $this->sendEvents([$this->getSettingsChangedEventData()]);
         } catch (\Exception $e) {
             $this->logger->critical($e);
         }
@@ -265,16 +263,6 @@ class SendEvents
     }
 
     /**
-     * @throws Exception
-     * @throws AlreadyExistsException
-     * @throws LocalizedException
-     */
-    private function sendPingEvent()
-    {
-        $this->sendEvents([$this->getPingEventData()]);
-    }
-
-    /**
      * @param Collection $eventCollection
      * @param array $notAcceptedEvents
      * @param $errorMsg
@@ -347,7 +335,20 @@ class SendEvents
                 'base_url' => $this->helperPushApi->getBaseUrl(),
                 'api_url_prices' => $this->helperPushApi->getApiUrl('prices'),
             ],
-            'timestamp' => microtime(true),
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    private function getSettingsChangedEventData()
+    {
+        $details = $this->helperData->getConfigValues();
+        unset($details['general/api_key']);
+
+        return [
+            'event_type' => 'user_settings_changed',
+            'event_details' => $details,
         ];
     }
 
@@ -360,6 +361,9 @@ class SendEvents
     private function prepareEventData(array $data)
     {
         $data['api_version'] = self::API_VERSION;
+        if (!isset($data['timestamp'])) {
+            $data['timestamp'] = microtime(true);
+        }
         $data['timestamp'] = $this->exportTimestamp($data['timestamp']);
 
         return $data;
