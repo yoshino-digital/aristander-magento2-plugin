@@ -13,7 +13,7 @@ class UpdatePrices
     private $intervalTick = 30;
 
     /** @var int Maximum interval in minutes */
-    private $maxInterval = 10080; //week
+    private $baseInterval = 10080; //week
 
     /** @noinspection PhpUndefinedClassInspection */
     /** @var LoggerInterface */
@@ -56,14 +56,14 @@ class UpdatePrices
         );
         if ($updateInterval != $this->intervalTick) {
             // Number of granular intervals passed since max interval start
-            $ticksSinceMaxIntervalStart = floor(
-                (time() % ($this->maxInterval * 60))
+            $ticksSinceBaseIntervalStart = floor(
+                (time() % ($this->baseInterval * 60))
                 /
                 ($this->intervalTick * 60)
             );
             $updateIntervalTicks = $updateInterval / $this->intervalTick;
 
-            $tickSkipped = $ticksSinceMaxIntervalStart % $updateIntervalTicks;
+            $tickSkipped = $ticksSinceBaseIntervalStart % $updateIntervalTicks;
             if (0 != $tickSkipped) {
                 $this->logger->debug("Aristander.ai price update is configured to run once per {$updateIntervalTicks} calls. Skipping call {$tickSkipped} of {$updateIntervalTicks}.");
                 return;

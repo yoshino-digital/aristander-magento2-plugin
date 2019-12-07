@@ -5,6 +5,8 @@ class UpdateInterval implements \Magento\Framework\Option\ArrayInterface
 {
     /**
      * Options getter
+     * Note that \AristanderAi\Aai\Cron\UpdatePrices::$maxInterval
+     * should be equal to max option available
      *
      * @return array
      */
