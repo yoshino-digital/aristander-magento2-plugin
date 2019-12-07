@@ -184,6 +184,15 @@ class Data extends AbstractHelper
         return (string) $this->priceCurrency->round($value);
     }
 
+    public function getNextPriceUpdateTimestamp()
+    {
+        $updateInterval = (int) $this->getConfigValue(
+            'price/update_interval'
+        ) * 60;
+
+        return ceil(time() / $updateInterval) * $updateInterval;
+    }
+
     //
     // Mass settings export
     //

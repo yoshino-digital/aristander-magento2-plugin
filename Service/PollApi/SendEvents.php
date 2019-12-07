@@ -231,9 +231,14 @@ class SendEvents
      */
     private function sendEvents(array $events)
     {
-        $events = array_map([$this, 'prepareEventData'], $events);
+        $request = [
+            'events' => array_map([$this, 'prepareEventData'], $events),
+            'next_price_update_timestamp' => $this->exportTimestamp(
+                $this->helperData->getNextPriceUpdateTimestamp()
+            )
+        ];
 
-        $this->httpClient->setRawBody(json_encode(compact('events')));
+        $this->httpClient->setRawBody(json_encode($request));
 
         try {
             $response = $this->httpClient->send();
